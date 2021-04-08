@@ -25,6 +25,8 @@ app.get("/", (request, response) => {
     response.render("home.ejs");
 });
 
+app.get("/login", (request, response) => {});
+
 // start the server
 app.listen(port, () => {
     console.log(`LISTENING ON PORT ${port}!`);
