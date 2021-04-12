@@ -20,8 +20,11 @@
     <body>
         <h1>Dashboard</h1>
 
-        <h2>Hello <%= user %></h2>
+        <h2>Hello <%= user.name %></h2>
 
+        <% if (user.usr_type == 'pharmacist') { %> <%-
+        include('partials/pharmacist.ejs') %> <% } else if (user.usr_type ==
+        'doctor') {%> <%- include('partials/doctor') %> <% }%>
         <a href="/users/logout">Logout</a>
     </body>
 </html>
