@@ -1,17 +1,109 @@
 <%- include('partials/head')%>
-<form action="/prescriptions/issue" method="POST">
+<form action="/prescriptions/issue" method="POST" class="container-fluid">
+    <div><h2>Fill in Patient's Information</h2></div>
     <div class="mb-3 col-3">
-                <label for="name" class="form-label">Enter Name Here:</label>
+        <label for="name" class="form-label">Enter Patient's Name Here:</label>
+        <input
+            type="text"
+            id="name"
+            name="name"
+            placeholder="Patient Name"
+            required
+            class="form-control"
+        />
+    </div>
 
-                <input
-                    type="text"
-                    id="name"
-                    name="name"
-                    placeholder="Name"
-                    required
-                    class="form-control"
-                />
-            </div>
-    <button>Submit Prescription</button>
+    <div class="mb-3 col-3">
+        <label for="email" class="form-label"
+            >Enter Patient's Email Here:</label
+        >
+
+        <input
+            type="email"
+            id="email"
+            name="email"
+            placeholder="Patient Email"
+            required
+            class="form-control"
+        />
+    </div>
+
+    <div class="mb-3 col-3">
+        <label for="phone_number" class="form-label"
+            >Enter Patient's Phone Number Here:</label
+        >
+
+        <input
+            type="text"
+            id="phone_number"
+            name="phone_number"
+            placeholder="Patient Phone Number"
+            required
+            class="form-control"
+        />
+    </div>
+
+    <div><h2>Fill in Medicine's Information</h2></div>
+    <div class="mb-3 col-3">
+        <label for="medicine_name" class="form-label"
+            >Enter Medicine Label to Prescribe Here:</label
+        >
+        <input
+            type="text"
+            id="medicine_name"
+            name="medicine_name"
+            placeholder="Medicine Name"
+            required
+            class="form-control"
+        />
+    </div>
+
+    <div class="mb-3 col-3">
+        <label for="quantity" class="form-label"
+            >Enter Medicine Quantity:</label
+        >
+        <input
+            type="text"
+            id="quantity"
+            name="quantity"
+            placeholder="Prescription Quantity"
+            required
+            class="form-control"
+        />
+    </div>
+
+    <div class="mb-3 col-3">
+        <label for="strength" class="form-label"
+            >Enter Prescription Strength:</label
+        >
+        <input
+            type="text"
+            id="strength"
+            name="strength"
+            placeholder="Prescription Strength"
+            required
+            class="form-control"
+        />
+    </div>
+    <div class="mb-3 col-3">
+        <label for="dosage" class="form-label"
+            >Enter Prescription Dosage:</label
+        >
+        <input
+            type="text"
+            id="dosage"
+            name="dosage"
+            placeholder="Prescription Dosage"
+            required
+            class="form-control"
+        />
+    </div>
+    <button
+        class="btn btn-primary mb-3"
+        type="submit"
+        value="create_prescription"
+    >
+        Create a prescription!
+    </button>
 </form>
 <%- include('partials/footer')%>

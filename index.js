@@ -130,12 +130,29 @@ app.post(
 );
 
 //pulls up the form to create a prescription.
+app.get("/prescriptions", checkNotAuthenticated, async (request, response) => {
+    const doctorID = request.session.passport.user;
+    console.log(doctorID);
+    const results = await pool.query(
+        "SELECT * FROM prescribed_by as PB, patient as P, drugs as D WHERE PB.p_id=P.id AND PB.med_id=D.id AND PB.id=$1",
+        [doctorID]
+    );
+
+    const prescriptionList = results.rows;
+    console.log(prescriptionList);
+
+    response.render("prescriptions", { prescriptionList });
+});
 app.get("/prescriptions/issue", checkNotAuthenticated, (request, response) => {
     console.log(request.session.passport);
     response.render("issuePrescription");
 });
 
-app.post("/prescriptions/issue", (request, response) => {});
+app.post(
+    "/prescriptions/issue",
+    checkNotAuthenticated,
+    (request, response) => {}
+);
 
 //CREATE a new todo - create a new doctor from the form request.
 app.post("/todos", async (request, response) => {
