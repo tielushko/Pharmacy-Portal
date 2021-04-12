@@ -50,7 +50,7 @@ app.get("/users/login", checkAuthenticated, (request, response) => {
 });
 app.get("/users/dashboard", checkNotAuthenticated, (request, response) => {
     console.log(request.user);
-    response.render("dashboard", { user: request.user.name });
+    response.render("dashboard", { user: request.user });
 });
 app.get("/users/logout", (request, response) => {
     request.logOut();
@@ -128,22 +128,34 @@ app.post(
         failureFlash: true,
     })
 );
+
+//pulls up the form to create a prescription.
+app.get("/prescriptions/issue", checkNotAuthenticated, (request, response) => {
+    console.log(request.session.passport);
+    response.render("issuePrescription");
+});
+
+app.post("/prescriptions/issue", (request, response) => {});
+
 //CREATE a new todo - create a new doctor from the form request.
 app.post("/todos", async (request, response) => {
     try {
-        const {id, name, phone_number, email, password} = req.body;
+        const { id, name, phone_number, email, password } = req.body;
         console.log(req.body);
-        const newDoc = await pool.query("INSERT INTO Doctor (id, name, phone_number, email, password) VALUES ($1, $2, $3, $4, $5) RETURNING *;", [id, name, phone_number, email, password], (err, result)=>{
-            if(err){
-                console.log(err.message);
+        const newDoc = await pool.query(
+            "INSERT INTO Doctor (id, name, phone_number, email, password) VALUES ($1, $2, $3, $4, $5) RETURNING *;",
+            [id, name, phone_number, email, password],
+            (err, result) => {
+                if (err) {
+                    console.log(err.message);
+                }
             }
-        });
+        );
         res.json(newDoc);
     } catch (error) {
         console.log(error.message);
-        
     }
-})
+});
 
 //Example of get request
 app.get("/doctor", async (req, res) => {
@@ -153,16 +165,7 @@ app.get("/doctor", async (req, res) => {
     } catch (error) {
         console.log(error.message);
     }
-})
-
-
-// handling home request - renders basic home ejs page that can be found in views folder.
-app.get("/", (request, response) => {
-    response.render("home.ejs");
 });
-
-app.post("/register", (request, response) => {});
-app.get("/login", (request, response) => {});
 
 app.get("/todos/:id", async (request, response) => {
     try {
