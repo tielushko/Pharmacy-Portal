@@ -128,6 +128,15 @@ app.post(
         failureFlash: true,
     })
 );
+
+//pulls up the form to create a prescription.
+app.get("/prescriptions/issue", checkNotAuthenticated, (request, response) => {
+    console.log(request.session.passport);
+    response.render("issuePrescription");
+});
+
+app.post("/prescriptions/issue", (request, response) => {});
+
 //CREATE a new todo - create a new doctor from the form request.
 app.post("/todos", async (request, response) => {
     try {
