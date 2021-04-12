@@ -26,7 +26,35 @@ app.use(methodOverride("_method"));
 /*
  ROUTES
 */
-//handling home request - renders basic home ejs page that can be found in views folder.
+// Example of post request
+app.post("/doctor", async(req, res)=>{
+    try {
+        const {id, name, phone_number, email, password} = req.body;
+        console.log(req.body);
+        const newDoc = await pool.query("INSERT INTO Doctor (id, name, phone_number, email, password) VALUES ($1, $2, $3, $4, $5) RETURNING *;", [id, name, phone_number, email, password], (err, result)=>{
+            if(err){
+                console.log(err.message);
+            }
+        });
+        res.json(newDoc);
+    } catch (error) {
+        console.log(error.message);
+        
+    }
+})
+
+//Example of get request
+app.get("/doctor", async (req, res) => {
+    try {
+        const allDocs = await pool.query("SELECT * FROM DOCTOR");
+        res.json(allDocs.rows);
+    } catch (error) {
+        console.log(error.message);
+    }
+})
+
+
+// handling home request - renders basic home ejs page that can be found in views folder.
 app.get("/", (request, response) => {
     response.render("home.ejs");
 });
@@ -34,44 +62,7 @@ app.get("/", (request, response) => {
 app.post("/register", (request, response) => {});
 app.get("/login", (request, response) => {});
 
-//CREATE a new todo - create a new doctor from the form request.
-app.post("/todos", async (request, response) => {
-    try {
-        const { description } = request.body;
-        const newToDo = await pool.query(
-            "INSERT INTO todo (description) VALUES ($1) RETURNING *",
-            [description]
-        );
-        response.json(newToDo.rows[0]);
-    } catch (error) {
-        console.error(error.message);
-    }
-});
 
-//READ all todos from the server
-app.get("/todos", async (request, response) => {
-    try {
-        const allTodos = await pool.query("SELECT * FROM todo");
-        response.json(allTodos.rows);
-    } catch (error) {
-        console.error(error.message);
-    }
-});
-
-//READ a todo by ID from the server
-
-app.get("/todos/:id", async (request, response) => {
-    try {
-        const { id } = request.params;
-        const todo = await pool.query("SELECT * FROM todo WHERE todo_id=$1", [
-            id,
-        ]);
-
-        response.json(todo.rows[0]);
-    } catch (error) {
-        console.error(error.message);
-    }
-});
 // start the server
 app.listen(port, () => {
     console.log(`LISTENING ON PORT ${port}!`);

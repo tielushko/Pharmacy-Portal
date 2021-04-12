@@ -1,12 +1,13 @@
-const Pool = require("pg").Pool;
+var conString = "postgres://yxqdwbpo:2cUEB5BjPRZZiVfPCZ0oflM4vecURGwW@queenie.db.elephantsql.com:5432/yxqdwbpo" //Can be found in the Details page
+const {Pool} = require("pg");
 
-//edit this object to change the database credentials -Oleg
 const pool = new Pool({
-    user: "postgres",
-    password: "Admin",
-    database: "todo_database",
-    host: "localhost",
+    user: "yxqdwbpo",
+    password: "2cUEB5BjPRZZiVfPCZ0oflM4vecURGwW",
+    database: "portal-db",
+    host: "http://queenie.db.elephantsql.com/",
     port: 5432,
-});
+    connectionString: conString
+})
 
-module.exports = pool;
+module.exports = pool
