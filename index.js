@@ -11,7 +11,7 @@ const passport = require("passport");
 const initializePassport = require("./passportConfig");
 initializePassport(passport);
 //local port for the server
-const port = 8000;
+const port = process.env.PORT || 8000;
 
 //create express app
 const app = express();
@@ -42,21 +42,30 @@ app.get("/", (request, response) => {
     response.render("home.ejs");
 });
 
+// Renders registration page
 app.get("/users/register", checkAuthenticated, (request, response) => {
     response.render("register");
 });
+
+// Renders login page
 app.get("/users/login", checkAuthenticated, (request, response) => {
     response.render("login");
 });
+
+// Renders dashboard based on the user
 app.get("/users/dashboard", checkNotAuthenticated, (request, response) => {
     console.log(request.user);
     response.render("dashboard", { user: request.user });
 });
+
+// redirects to home page on logout
 app.get("/users/logout", (request, response) => {
     request.logOut();
-    request.flash("success_msg", "You have succcessfully logged out");
+    request.flash("success_msg", "You have successfully logged out");
     response.redirect("/users/login");
 });
+
+// adds to user table and then redirects to login page
 app.post("/users/register", async (request, response) => {
     let { name, email, password, password2, usr_type } = request.body;
     console.log({ name, email, password, password2, usr_type });
@@ -120,6 +129,7 @@ app.post("/users/register", async (request, response) => {
     }
 });
 
+// Authenticates user and renders dashboard
 app.post(
     "/users/login",
     passport.authenticate("local", {
@@ -137,81 +147,164 @@ app.get("/prescriptions/issue", checkNotAuthenticated, (request, response) => {
 
 app.post("/prescriptions/issue", (request, response) => {});
 
-//CREATE a new todo - create a new doctor from the form request.
-app.post("/todos", async (request, response) => {
+// Pulls up Drug CRUD
+app.get("/drugs", checkNotAuthenticated, (request, response) => {
+    console.log(request.session.passport);
+    response.render("updateMeds", {success: ""});
+});
+
+// Add drug to drug table
+app.post("/drugs/addMed", async (req, res) => {
     try {
-        const { id, name, phone_number, email, password } = req.body;
+        const {name, strength, cost, quantity} = req.body;
         console.log(req.body);
-        const newDoc = await pool.query(
-            "INSERT INTO Doctor (id, name, phone_number, email, password) VALUES ($1, $2, $3, $4, $5) RETURNING *;",
-            [id, name, phone_number, email, password],
+        const newMed = await pool.query(
+            "INSERT INTO Drugs (drug_name, drug_strength, drug_cost, drug_quantity) VALUES ($1, $2, $3, $4) RETURNING *;",
+            [name, strength, cost, quantity],
             (err, result) => {
                 if (err) {
                     console.log(err.message);
                 }
             }
         );
-        res.json(newDoc);
+        res.render('updateMeds', {success: "Drug was added to the database."});
+        // res.json(newMed);
     } catch (error) {
         console.log(error.message);
     }
 });
+
+
+app.post("/drugs/delete", async (req, res) => {
+    try {
+        const {name, strength} = req.body;
+        console.log(req.body);
+        const deleteMed = await pool.query(
+            "DELETE FROM DRUGS WHERE drug_name = $1 AND drug_strength = $2", [name, strength],
+            (err, result) => {
+                if (err) {
+                    console.log(err.message);
+                }
+            }
+        );
+        res.render('updateMeds', {success: "Drug was deleted from the database."});
+        // res.json(deleteMed);
+    } catch (error) {
+        console.log(error.message);
+    }
+});
+
+app.post("/drugs/update", async (req, res) => {
+    try {
+        const {name, strength, quantity} = req.body;
+        console.log(req.body);
+        const deleteMed = await pool.query(
+            "UPDATE DRUGS SET drug_quantity = $1 WHERE drug_name = $2 AND drug_strength = $3", [quantity, name, strength],
+            (err, result) => {
+                if (err) {
+                    console.log(err.message);
+                }
+            }
+        );
+        res.render('updateMeds', {success: "Drug quantity was changed in the database."});
+        // res.json(deleteMed);
+    } catch (error) {
+        console.log(error.message);
+    }
+});
+
+
+
+// app.post("/drugs/search/?:name&strength", async (req, res) => {
+//         try {
+        
+//             const {name, strength} = req.params;
+//             console.log(name, strength);
+//             const drugs = await pool.query("SELECT * FROM Drugs AS D WHERE D.name = $1 AND D.strength = $2;", [name, strength]);
+//             res.json(drugs.rows);
+//         } catch (error) {
+//             console.log(error.message);
+//         }
+//     });
+
+
+//CREATE a new todo - create a new doctor from the form request.
+// app.post("/todos", async (request, response) => {
+//     try {
+//         const { id, name, phone_number, email, password } = req.body;
+//         console.log(req.body);
+//         const newDoc = await pool.query(
+//             "INSERT INTO Doctor (id, name, phone_number, email, password) VALUES ($1, $2, $3, $4, $5) RETURNING *;",
+//             [id, name, phone_number, email, password],
+//             (err, result) => {
+//                 if (err) {
+//                     console.log(err.message);
+//                 }
+//             }
+//         );
+//         res.json(newDoc);
+//     } catch (error) {
+//         console.log(error.message);
+//     }
+// });
 
 //Example of get request
-app.get("/doctor", async (req, res) => {
-    try {
-        const allDocs = await pool.query("SELECT * FROM DOCTOR");
-        res.json(allDocs.rows);
-    } catch (error) {
-        console.log(error.message);
-    }
-});
+// app.get("/doctor", async (req, res) => {
+//     try {
+//         const allDocs = await pool.query("SELECT * FROM DOCTOR");
+//         res.json(allDocs.rows);
+//     } catch (error) {
+//         console.log(error.message);
+//     }
+// });
 
-app.get("/todos/:id", async (request, response) => {
-    try {
-        const { id } = request.params;
-        const todo = await pool.query(
-            "SELECT description FROM todo WHERE todo_id=$1",
-            [id]
-        );
+// app.get("/todos/:id", async (request, response) => {
+//     try {
+//         const { id } = request.params;
+//         const todo = await pool.query(
+//             "SELECT description FROM todo WHERE todo_id=$1",
+//             [id]
+//         );
 
-        response.json(todo.rows[0]);
-    } catch (error) {
-        console.error(error.message);
-    }
-});
+//         response.json(todo.rows[0]);
+//     } catch (error) {
+//         console.error(error.message);
+//     }
+// });
 
 //UPDATE the todo by id
 
-app.put("/todos/:id", async (request, response) => {
-    try {
-        const { id } = request.params; //WHERE
-        const { description } = request.body; //WHAT TO SET
-        const updateToDo = await pool.query(
-            "UPDATE todo SET description = $1 WHERE todo_id = $2",
-            [description, id]
-        );
-        response.json(`Todo with id ${id} was updated!`);
-    } catch (error) {
-        console.error(error.message);
-    }
-});
+// app.put("/todos/:id", async (request, response) => {
+//     try {
+//         const { id } = request.params; //WHERE
+//         const { description } = request.body; //WHAT TO SET
+//         const updateToDo = await pool.query(
+//             "UPDATE todo SET description = $1 WHERE todo_id = $2",
+//             [description, id]
+//         );
+//         response.json(`Todo with id ${id} was updated!`);
+//     } catch (error) {
+//         console.error(error.message);
+//     }
+// });
 
 //DELETE the todo by id
-app.delete("/todos/:id", async (request, response) => {
-    try {
-        const { id } = request.params; //WHERE
+// app.delete("/todos/:id", async (request, response) => {
+//     try {
+//         const { id } = request.params; //WHERE
 
-        const deleteTodo = await pool.query(
-            "DELETE FROM todo WHERE todo_id = $1",
-            [id]
-        );
-        response.json(`Todo with id ${id} was deleted!`);
-    } catch (error) {
-        console.error(error.message);
-    }
-});
+//         const deleteTodo = await pool.query(
+//             "DELETE FROM todo WHERE todo_id = $1",
+//             [id]
+//         );
+//         response.json(`Todo with id ${id} was deleted!`);
+//     } catch (error) {
+//         console.error(error.message);
+//     }
+// });
 
+
+// Helper functions for authentication
 function checkAuthenticated(request, response, next) {
     if (request.isAuthenticated()) {
         return response.redirect("/users/dashboard");
