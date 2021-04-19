@@ -18,101 +18,113 @@
         <title>Register</title>
     </head>
     <body>
-        <h1>Register</h1>
+            <nav class="navbar navbar-light rounded shadow p-3">
+                    <div class="container-fluid">
+                        <span class="navbar-brand mb-0 h1">DocPharm Connect</span>
+                    </div>
+                </nav>
 
-        <ul>
-            <% if (typeof errors != 'undefined') { %>
-                <% for (let error of errors) {%>
-                    <li>
-                        <%= error.message %>
-                    </li>    
-                <% } %>
-            <% } %>
-        </ul>
 
-        <form action="/users/register" method="POST">
-            <div class="mb-3 col-3">
-                <label for="name" class="form-label">Enter Name Here:</label>
+                <div class="card text-center mx-5 my-5 shadow">
+                        <div class="card-header">
+                                <h1>Register</h1>
+                            <% if (typeof errors != 'undefined') { %>
+                                <% for (let error of errors) {%>
+                                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                            <%= messages.success_msg %>
+                                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                    </div>    
+                                <% } %>
+                            <% } %>
+                        </div>
+                        <div class="card-body">
+                                <form action="/users/register" method="POST">
+                                    <div class="mb-3">
+                                        <label for="name" class="form-label">Enter Name Here:</label>
+                        
+                                        <input
+                                            type="text"
+                                            id="name"
+                                            name="name"
+                                            placeholder="Name"
+                                            required
+                                            class="form-control"
+                                        />
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="email" class="form-label">Enter Email Here:</label>
+                        
+                                        <input
+                                            type="email"
+                                            id="email"
+                                            name="email"
+                                            placeholder="Email"
+                                            required
+                                            class="form-control"
+                                        />
+                                    </div>
+                        
+                                    <div class="mb-3">
+                                        <label for="password" class="form-label"
+                                            >Enter Password Here:</label
+                                        >
+                                        <input
+                                            type="password"
+                                            id="password"
+                                            name="password"
+                                            placeholder="Password"
+                                            required
+                                            class="form-control"
+                                        />
+                                    </div>
+                        
+                                    <div class="mb-3">
+                                        <label for="password" class="form-label"
+                                            >Please Confirm Your Password Here:</label
+                                        >
+                                        <input
+                                            type="password"
+                                            id="password2"
+                                            name="password2"
+                                            placeholder="Confirm Password"
+                                            required
+                                            class="form-control"
+                                        />
+                                    </div>
+                        
+                                    <div class="mb-3">
+                                        <p>Select your employment category:</p>
+                                        <input
+                                            type="radio"
+                                            name="usr_type"
+                                            id="usr_type_doctor"
+                                            value="doctor"
+                                        />
+                                        <label for="usr_type_doctor">Doctor</label>
+                                        <input
+                                            type="radio"
+                                            name="usr_type"
+                                            id="usr_type_pharmacist"
+                                            value="pharmacist"
+                                        />
+                                        <label for="usr_type_pharmacist">Pharmacist</label>
+                                    </div>
+                                    <div>
+                                        <button
+                                            type="submit"
+                                            class="btn btn-primary mb-3"
+                                            value="Register"
+                                        >
+                                            Register
+                                        </button>
+                                    </div>
+                                    <div>
+                                        <a href="/users/login">Already registered? Login here.</a>
+                                    </div>
+                                </form>
+                        </div>
+                    </div>
 
-                <input
-                    type="text"
-                    id="name"
-                    name="name"
-                    placeholder="Name"
-                    required
-                    class="form-control"
-                />
-            </div>
-            <div class="mb-3 col-3">
-                <label for="email" class="form-label">Enter Email Here:</label>
-
-                <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    placeholder="Email"
-                    required
-                    class="form-control"
-                />
-            </div>
-
-            <div class="mb-3 col-3">
-                <label for="password" class="form-label"
-                    >Enter Password Here:</label
-                >
-                <input
-                    type="password"
-                    id="password"
-                    name="password"
-                    placeholder="Password"
-                    required
-                    class="form-control"
-                />
-            </div>
-
-            <div class="mb-3 col-3">
-                <label for="password" class="form-label"
-                    >Please Confirm Your Password Here:</label
-                >
-                <input
-                    type="password"
-                    id="password2"
-                    name="password2"
-                    placeholder="Confirm Password"
-                    required
-                    class="form-control"
-                />
-            </div>
-
-            <div class="mb-3">
-                <p>Select your employment category:</p>
-                <input
-                    type="radio"
-                    name="usr_type"
-                    id="usr_type_doctor"
-                    value="doctor"
-                />
-                <label for="usr_type_doctor">Doctor</label>
-                <input
-                    type="radio"
-                    name="usr_type"
-                    id="usr_type_pharmacist"
-                    value="pharmacist"
-                />
-                <label for="usr_type_pharmacist">Pharmacist</label>
-            </div>
-            <div>
-                <button
-                    type="submit"
-                    class="btn btn-primary mb-3"
-                    value="Register"
-                >
-                    Register
-                </button>
-            </div>
-            <div>
-                <a href="/users/login">Already registered? Login here.</a>
-            </div>
-        </form>
+        
     </body>
 </html>
