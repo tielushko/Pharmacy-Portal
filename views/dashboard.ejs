@@ -18,9 +18,12 @@
         <title>Dashboard</title>
     </head>
     <body>
-        <h1>Dashboard</h1>
-
-        <h2>Hello <%= user.name %></h2>
+        <nav class="navbar navbar-light rounded shadow p-3">
+                <div class="container-fluid">
+                    <span class="navbar-brand mb-0 h1">DocPharm Connect</span>
+                </div>
+        </nav>
+        <h1 class= "mt-5 px-3">Hello <%= user.name %>!</h1>
 
         <% if (user.usr_type == 'pharmacist') { %> <%-
         include('partials/pharmacist.ejs') %> <% } else if (user.usr_type ==
