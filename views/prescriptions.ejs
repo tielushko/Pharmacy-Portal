@@ -1,0 +1,25 @@
+<%- include('partials/head')%>
+<ul>
+    <li><a href="prescriptions/issue">Issue a Prescription</a></li>
+    <li><a href="prescriptions/search">Search a Prescription</a></li>
+    <!-- need to render all prescriptions for the doctor with id of $id -->
+</ul>
+
+<div>
+    <h2>Your List of Prescriptions:</h2>
+
+    <ul>
+        <% if (typeof prescriptionList != 'undefined') { %> <% for (let
+        prescription of prescriptionList) {%>
+        <li>
+            <b>Patient Name: </b><%= prescription.name %>.
+            <b>Patient Email: </b><%= prescription.email %>.
+            <b>Medicine Name: </b><%= prescription.drug_name %>.
+            <b>Medicine Quantity: </b><%= prescription.quantity %>.
+            <b>Medicine Strength: </b><%= prescription.drug_strength %>.
+            <b>Medicine Dosage: </b><%= prescription.dosage %>.
+        </li>
+        <% } %> <% } %>
+    </ul>
+</div>
+<%- include('partials/footer')%>

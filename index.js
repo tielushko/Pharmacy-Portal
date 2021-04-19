@@ -140,12 +140,34 @@ app.post(
 );
 
 //pulls up the form to create a prescription.
+app.get("/prescriptions", checkNotAuthenticated, async (request, response) => {
+    try {
+        const doctorID = request.session.passport.user;
+        console.log(doctorID);
+        //ISSUE: DOES NOT RETURN DRUG NAME AND NAME OF PATIENT
+        const results = await pool.query(
+            "SELECT * FROM prescribed_by as PB, patient as P, drugs as D WHERE PB.p_id=P.id AND PB.med_id=D.drug_id AND PB.id=$1",
+            [doctorID]
+        );
+
+        const prescriptionList = results.rows;
+        console.log(prescriptionList);
+
+        response.render("prescriptions", { prescriptionList });
+    } catch (error) {
+        console.error(error);
+    }
+});
 app.get("/prescriptions/issue", checkNotAuthenticated, (request, response) => {
     console.log(request.session.passport);
     response.render("issuePrescription");
 });
 
-app.post("/prescriptions/issue", (request, response) => {});
+app.post(
+    "/prescriptions/issue",
+    checkNotAuthenticated,
+    (request, response) => {}
+);
 
 // Pulls up Drug CRUD
 app.get("/drugs", checkNotAuthenticated, (request, response) => {
