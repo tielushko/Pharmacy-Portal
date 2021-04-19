@@ -172,13 +172,13 @@ app.post(
 // Pulls up Drug CRUD
 app.get("/drugs", checkNotAuthenticated, (request, response) => {
     console.log(request.session.passport);
-    response.render("updateMeds", {success: ""});
+    response.render("updateMeds", { success: "" });
 });
 
 // Add drug to drug table
 app.post("/drugs/addMed", async (req, res) => {
     try {
-        const {name, strength, cost, quantity} = req.body;
+        const { name, strength, cost, quantity } = req.body;
         console.log(req.body);
         const newMed = await pool.query(
             "INSERT INTO Drugs (drug_name, drug_strength, drug_cost, drug_quantity) VALUES ($1, $2, $3, $4) RETURNING *;",
@@ -189,27 +189,31 @@ app.post("/drugs/addMed", async (req, res) => {
                 }
             }
         );
-        res.render('updateMeds', {success: "Drug was added to the database."});
+        res.render("updateMeds", {
+            success: "Drug was added to the database.",
+        });
         // res.json(newMed);
     } catch (error) {
         console.log(error.message);
     }
 });
 
-
 app.post("/drugs/delete", async (req, res) => {
     try {
-        const {name, strength} = req.body;
+        const { name, strength } = req.body;
         console.log(req.body);
         const deleteMed = await pool.query(
-            "DELETE FROM DRUGS WHERE drug_name = $1 AND drug_strength = $2", [name, strength],
+            "DELETE FROM DRUGS WHERE drug_name = $1 AND drug_strength = $2",
+            [name, strength],
             (err, result) => {
                 if (err) {
                     console.log(err.message);
                 }
             }
         );
-        res.render('updateMeds', {success: "Drug was deleted from the database."});
+        res.render("updateMeds", {
+            success: "Drug was deleted from the database.",
+        });
         // res.json(deleteMed);
     } catch (error) {
         console.log(error.message);
@@ -218,37 +222,52 @@ app.post("/drugs/delete", async (req, res) => {
 
 app.post("/drugs/update", async (req, res) => {
     try {
-        const {name, strength, quantity} = req.body;
+        const { name, strength, quantity } = req.body;
         console.log(req.body);
         const deleteMed = await pool.query(
-            "UPDATE DRUGS SET drug_quantity = $1 WHERE drug_name = $2 AND drug_strength = $3", [quantity, name, strength],
+            "UPDATE DRUGS SET drug_quantity = $1 WHERE drug_name = $2 AND drug_strength = $3",
+            [quantity, name, strength],
             (err, result) => {
                 if (err) {
                     console.log(err.message);
                 }
             }
         );
-        res.render('updateMeds', {success: "Drug quantity was changed in the database."});
+        res.render("updateMeds", {
+            success: "Drug quantity was changed in the database.",
+        });
         // res.json(deleteMed);
     } catch (error) {
         console.log(error.message);
     }
 });
 
+app.get("/drugs/search", async (req, res) => {
+    try {
+        const { name, strength } = req.query;
+        console.log(name, strength);
+        const drugsQuery = await pool.query(
+            "SELECT * FROM Drugs AS D WHERE D.drug_name = $1 AND D.drug_strength = $2;",
+            [name, strength]
+        );
+        const foundDrugsList = drugsQuery.rows;
+        console.log(foundDrugsList);
 
-
-// app.post("/drugs/search/?:name&strength", async (req, res) => {
-//         try {
-        
-//             const {name, strength} = req.params;
-//             console.log(name, strength);
-//             const drugs = await pool.query("SELECT * FROM Drugs AS D WHERE D.name = $1 AND D.strength = $2;", [name, strength]);
-//             res.json(drugs.rows);
-//         } catch (error) {
-//             console.log(error.message);
-//         }
-//     });
-
+        if (foundDrugsList.length > 0) {
+            res.render("updateMeds.ejs", {
+                foundDrugsList,
+                success: "Here are the drugs that match your query",
+            });
+        } else {
+            res.render("updateMeds.ejs", {
+                success:
+                    "Sorry. The drug you are trying to search for does not exist in our database",
+            });
+        }
+    } catch (error) {
+        console.log(error.message);
+    }
+});
 
 //CREATE a new todo - create a new doctor from the form request.
 // app.post("/todos", async (request, response) => {
@@ -324,7 +343,6 @@ app.post("/drugs/update", async (req, res) => {
 //         console.error(error.message);
 //     }
 // });
-
 
 // Helper functions for authentication
 function checkAuthenticated(request, response, next) {

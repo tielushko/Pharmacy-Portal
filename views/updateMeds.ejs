@@ -31,6 +31,18 @@
                                     class="form-control" />
                             </div>
                             <button>Submit</button>
+                            <ul>
+                                <% if (typeof foundDrugsList != 'undefined') { %> 
+                                    <% for (let drug of foundDrugsList) {%>
+                                        <li>
+                                            <b>Medicine Name: </b><%= drug.drug_name %>.
+                                            <b>Medicine Quantity: </b><%= drug.drug_quantity %>.
+                                            <b>Medicine Strength: </b><%= drug.drug_strength %>.
+                                            <b>Medicine Cost: </b><%= drug.drug_cost %>.
+                                        </li>
+                                    <% } %> 
+                                <% } %>
+                            </ul>
                         </form>
                     </div>
                 </div>

@@ -9,17 +9,18 @@
     <h2>Your List of Prescriptions:</h2>
 
     <ul>
-        <% if (typeof prescriptionList != 'undefined') { %> <% for (let
-        prescription of prescriptionList) {%>
-        <li>
-            <b>Patient Name: </b><%= prescription.name %>.
-            <b>Patient Email: </b><%= prescription.email %>.
-            <b>Medicine Name: </b><%= prescription.drug_name %>.
-            <b>Medicine Quantity: </b><%= prescription.quantity %>.
-            <b>Medicine Strength: </b><%= prescription.drug_strength %>.
-            <b>Medicine Dosage: </b><%= prescription.dosage %>.
-        </li>
-        <% } %> <% } %>
+        <% if (typeof prescriptionList != 'undefined') { %> 
+            <% for (let prescription of prescriptionList) {%>
+            <li>
+                <b>Patient Name: </b><%= prescription.name %>.
+                <b>Patient Email: </b><%= prescription.email %>.
+                <b>Medicine Name: </b><%= prescription.drug_name %>.
+                <b>Medicine Quantity: </b><%= prescription.drug_quantity %>.
+                <b>Medicine Strength: </b><%= prescription.drug_strength %>.
+                <b>Medicine Dosage: </b><%= prescription.dosage %>.
+            </li>
+            <% } %> 
+        <% } %>
     </ul>
 </div>
 <%- include('partials/footer')%>
