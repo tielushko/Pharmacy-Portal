@@ -19,6 +19,8 @@ const app = express();
 //set the default path for templates to views, then we can work with what's inside of it.
 app.set("views", path.join(__dirname, "/views"));
 
+app.use(express.static(path.join(__dirname, "/views")))
+
 //set templates view engine to be of ejs extension
 app.set("view engine", "ejs");
 

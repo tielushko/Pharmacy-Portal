@@ -5,7 +5,7 @@
     </div>
     <div class="card-body">
         <% if(success != "") {%>
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <div class="alert alert-info alert-dismissible fade show" role="alert">
             <%=success%>
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
@@ -21,7 +21,7 @@
                 <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne"
                     data-bs-parent="#accordionExample">
                     <div class="accordion-body">
-                        <form action="/drugs/search" method="GET">
+                        <form action="/drugs/search" method="POST">
                             <div class="mb-3">
                                 <label for="name" class="form-label">Enter Drug Name Here:</label>
                                 <input type="text" id="name" name="name" placeholder="Name" required
