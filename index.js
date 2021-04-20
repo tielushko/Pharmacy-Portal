@@ -154,9 +154,50 @@ app.get("/prescriptions", checkNotAuthenticated, async (request, response) => {
         const prescriptionList = results.rows;
         console.log(prescriptionList);
 
-        response.render("prescriptions", { prescriptionList });
+        response.render("prescriptions", {
+            prescriptionList,
+            error: "",
+            success: "",
+        });
     } catch (error) {
         console.error(error);
+    }
+});
+
+app.get("/prescriptions/search", checkNotAuthenticated, async (req, res) => {
+    try {
+        const { patientName, patientEmail } = req.query;
+        const docID = req.session.passport.user;
+        console.log(docID, patientName, patientEmail);
+
+        const patientsQuery = await pool.query(
+            "SELECT * FROM prescribed_by as PB, patient as P, drugs as D WHERE PB.p_id=P.id AND PB.med_id=D.drug_id AND PB.id=$1 AND P.name=$2 AND P.email=$3",
+            [docID, patientName, patientEmail],
+            (err, result) => {
+                if (err) {
+                    console.error(err.message);
+                } else {
+                    const foundPrescriptions = result.rows;
+                    console.log(foundPrescriptions);
+
+                    if (foundPrescriptions.length > 0) {
+                        res.render("prescriptions.ejs", {
+                            foundPrescriptions,
+                            success: `Here is a list of your prescriptions for patient ${patientName}!`,
+                            error: "",
+                        });
+                    } else {
+                        res.render("prescriptions.ejs", {
+                            foundPrescriptions,
+                            success: "",
+                            error: `Sorry, you don't have any prescriptions for ${patientName}!`,
+                        });
+                    }
+                }
+            }
+        );
+    } catch (error) {
+        console.error(error.message);
     }
 });
 app.get("/prescriptions/issue", checkNotAuthenticated, (request, response) => {
