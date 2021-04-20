@@ -1,10 +1,282 @@
 <%- include('partials/head')%>
-<ul>
-    <li><a href="prescriptions/issue">Issue a Prescription</a></li>
-    <li><a href="prescriptions/search">Search a Prescription</a></li>
-    <!-- need to render all prescriptions for the doctor with id of $id -->
-</ul>
 
+<div class="card text-center mx-5 my-5 shadow">
+    <div class="card-header">
+        <h1>Manage Prescriptions</h1>
+    </div>
+    <div class="card-body">
+        <% if(success != "") {%>
+        <div
+            class="alert alert-success alert-dismissible fade show"
+            role="alert"
+        >
+            <%=success%>
+            <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="alert"
+                aria-label="Close"
+            ></button>
+        </div>
+        <% }%> <% if(error != "") {%>
+        <div
+            class="alert alert-danger alert-dismissible fade show"
+            role="alert"
+        >
+            <%=error%>
+            <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="alert"
+                aria-label="Close"
+            ></button>
+        </div>
+        <% }%>
+        <div class="accordion" id="accordionExample">
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingOne">
+                    <button
+                        class="accordion-button"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#collapseOne"
+                        aria-expanded="true"
+                        aria-controls="collapseOne"
+                    >
+                        Search Prescription
+                    </button>
+                </h2>
+                <div
+                    id="collapseOne"
+                    class="accordion-collapse collapse show"
+                    aria-labelledby="headingOne"
+                    data-bs-parent="#accordionExample"
+                >
+                    <div class="accordion-body">
+                        <form action="/prescriptions/search" method="GET">
+                            <div class="mb-3">
+                                <label for="patientName" class="form-label"
+                                    >Enter Patient's Name Here:</label
+                                >
+                                <input
+                                    type="text"
+                                    id="patientName"
+                                    name="patientName"
+                                    placeholder="Patient's Name"
+                                    required
+                                    class="form-control"
+                                />
+                                <label for="patientEmail" class="form-label"
+                                    >Enter Patient's Email Address Here:</label
+                                >
+                                <input
+                                    type="email"
+                                    id="patientEmail"
+                                    name="patientEmail"
+                                    placeholder="Patient's Email"
+                                    required
+                                    class="form-control"
+                                />
+                            </div>
+                            <button>Submit</button>
+                            <% if (typeof foundPrescriptions != 'undefined') {
+                            %> <% for (let prescription of foundPrescriptions)
+                            {%>
+                            <div>
+                                <b>Patient Name: </b><%= prescription.name %>.
+                                <b>Patient Email: </b><%= prescription.email %>.
+                                <b>Medicine Name: </b><%= prescription.drug_name
+                                %>. <b>Medicine Quantity: </b><%=
+                                prescription.drug_quantity %>.
+                                <b>Medicine Strength: </b><%=
+                                prescription.drug_strength %>.
+                                <b>Medicine Dosage: </b><%= prescription.dosage
+                                %>.
+                                <!-- <b>Prescription Date: </b><%= prescription.prescription_date %>. -->
+                                <!-- TODO. Make the DELETE button work for the particular patient prescription -->
+                                <form
+                                    action="/prescriptions/delete/:id"
+                                    method="POST"
+                                >
+                                    <button>DELETE</button>
+                                </form>
+                            </div>
+                            <% } %> <% } %>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingTwo">
+                    <button
+                        class="accordion-button collapsed"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#collapseTwo"
+                        aria-expanded="false"
+                        aria-controls="collapseTwo"
+                    >
+                        Issue a Prescription
+                    </button>
+                </h2>
+                <div
+                    id="collapseTwo"
+                    class="accordion-collapse collapse"
+                    aria-labelledby="headingTwo"
+                    data-bs-parent="#accordionExample"
+                >
+                    <div class="accordion-body">
+                        <form action="/prescriptions/issue" method="POST">
+                            <div class="mb-3">
+                                <h2>Fill in Patient's Information</h2>
+                                <label for="patient-name" class="form-label"
+                                    >Enter Patient's Name Here:</label
+                                >
+                                <input
+                                    type="text"
+                                    id="patient-name"
+                                    name="patient-name"
+                                    placeholder="Patient's Name"
+                                    required
+                                    class="form-control"
+                                />
+                                <label for="patient-email" class="form-label"
+                                    >Enter Patient's Email Address Here:</label
+                                >
+                                <input
+                                    type="email"
+                                    id="patient-email"
+                                    name="patient-email"
+                                    placeholder="Patient's Email"
+                                    required
+                                    class="form-control"
+                                />
+                                <label
+                                    for="patient-phone-number"
+                                    class="form-label"
+                                    >Enter Patient's Phone Number Here:</label
+                                >
+                                <input
+                                    type="text"
+                                    id="patient-phone-number"
+                                    name="patient-phone-number"
+                                    placeholder="Patient's Phone Number"
+                                    required
+                                    class="form-control"
+                                />
+
+                                <h2>Fill in Medicine's Information</h2>
+                                <label for="medicine-label" class="form-label"
+                                    >Enter Medicine Label to Prescribe
+                                    Here:</label
+                                >
+                                <input
+                                    type="text"
+                                    id="medicine-label"
+                                    name="medicine-label"
+                                    placeholder="Medicine Label"
+                                    required
+                                    class="form-control"
+                                />
+                                <label
+                                    for="medicine-quantity"
+                                    class="form-label"
+                                    >Enter Medicine Quantity:</label
+                                >
+                                <input
+                                    type="number"
+                                    id="medicine-quantity"
+                                    name="medicine-quantity"
+                                    placeholder="Medicine Quantity"
+                                    required
+                                    class="form-control"
+                                />
+                                <label
+                                    for="medicine-strength"
+                                    class="form-label"
+                                    >Enter Medicine Strength:</label
+                                >
+                                <input
+                                    type="text"
+                                    id="medicine-strength"
+                                    name="medicine-strength"
+                                    placeholder="Medicine Strength"
+                                    required
+                                    class="form-control"
+                                />
+                                <label for="medicine-dosage" class="form-label"
+                                    >Enter Prescription Dosage:</label
+                                >
+                                <input
+                                    type="text"
+                                    id="medicine-dosage"
+                                    name="medicine-dosage"
+                                    placeholder="Prescription Dosage"
+                                    required
+                                    class="form-control"
+                                />
+                            </div>
+                            <button>Create a prescription</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <!-- <div class="accordion-item">
+                <h2 class="accordion-header" id="headingThree">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                        Update Patient's Prescription
+                    </button>
+                </h2>
+                <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree"
+                    data-bs-parent="#accordionExample">
+                    <div class="accordion-body">
+                        <form action="/drugs/update" method="POST">
+                            <div class="mb-3">
+                                <label for="patient-name" class="form-label">Enter Patient's Name Here:</label>
+                                <input type="text" id="patient-name" name="patient-name" placeholder="Patient's Name" required
+                                    class="form-control" />
+                                <label for="name" class="form-label">Enter Drug Strength Here:</label>
+                                <input type="text" id="strength" name="strength" placeholder="Strength" required
+                                    class="form-control" />
+                                <label for="name" class="form-label">Enter New Quantity Here:</label>
+                                <input type="number" id="quantity" name="quantity" placeholder="New Quantity" required
+                                    class="form-control" />
+                            </div>
+                            <button>Submit</button>
+                        </form>
+                    </div>
+                </div>
+            </div> -->
+            <!-- <div class="accordion-item">
+                <h2 class="accordion-header" id="headingFour">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                        Delete Prescription Stock
+                    </button>
+                </h2>
+                <div id="collapseFour" class="accordion-collapse collapse" aria-labelledby="headingFour"
+                    data-bs-parent="#accordionExample">
+                    <div class="accordion-body">
+                        <form action="/drugs/delete" method="POST">
+                            <div class="mb-3">
+                                <label for="name" class="form-label">Enter Drug Name Here:</label>
+                                <input type="text" id="name" name="name" placeholder="Name" required
+                                    class="form-control" />
+                                <label for="name" class="form-label">Enter Drug Strength Here:</label>
+                                <input type="text" id="strength" name="strength" placeholder="Strength" required
+                                    class="form-control" />
+                            </div>
+                            <button>Submit</button>
+                        </form>
+                    </div>
+                </div>
+            </div> -->
+        </div>
+    </div>
+</div>
+
+<%- include('partials/footer')%>
 <div>
     <h2>Your List of Prescriptions:</h2>
 
@@ -15,7 +287,7 @@
             <b>Patient Name: </b><%= prescription.name %>.
             <b>Patient Email: </b><%= prescription.email %>.
             <b>Medicine Name: </b><%= prescription.drug_name %>.
-            <b>Medicine Quantity: </b><%= prescription.quantity %>.
+            <b>Medicine Quantity: </b><%= prescription.drug_quantity %>.
             <b>Medicine Strength: </b><%= prescription.drug_strength %>.
             <b>Medicine Dosage: </b><%= prescription.dosage %>.
         </li>

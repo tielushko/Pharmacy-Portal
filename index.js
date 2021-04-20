@@ -9,6 +9,7 @@ const flash = require("express-flash");
 const pool = require("./db");
 const passport = require("passport");
 const initializePassport = require("./passportConfig");
+const e = require("express");
 initializePassport(passport);
 //local port for the server
 const port = process.env.PORT || 8000;
@@ -155,9 +156,50 @@ app.get("/prescriptions", checkNotAuthenticated, async (request, response) => {
         const prescriptionList = results.rows;
         console.log(prescriptionList);
 
-        response.render("prescriptions", { prescriptionList });
+        response.render("prescriptions", {
+            prescriptionList,
+            error: "",
+            success: "",
+        });
     } catch (error) {
         console.error(error);
+    }
+});
+
+app.get("/prescriptions/search", checkNotAuthenticated, async (req, res) => {
+    try {
+        const { patientName, patientEmail } = req.query;
+        const docID = req.session.passport.user;
+        console.log(docID, patientName, patientEmail);
+
+        const patientsQuery = await pool.query(
+            "SELECT * FROM prescribed_by as PB, patient as P, drugs as D WHERE PB.p_id=P.id AND PB.med_id=D.drug_id AND PB.id=$1 AND P.name=$2 AND P.email=$3",
+            [docID, patientName, patientEmail],
+            (err, result) => {
+                if (err) {
+                    console.error(err.message);
+                } else {
+                    const foundPrescriptions = result.rows;
+                    console.log(foundPrescriptions);
+
+                    if (foundPrescriptions.length > 0) {
+                        res.render("prescriptions.ejs", {
+                            foundPrescriptions,
+                            success: `Here is a list of your prescriptions for patient ${patientName}!`,
+                            error: "",
+                        });
+                    } else {
+                        res.render("prescriptions.ejs", {
+                            foundPrescriptions,
+                            success: "",
+                            error: `Sorry, you don't have any prescriptions for ${patientName}!`,
+                        });
+                    }
+                }
+            }
+        );
+    } catch (error) {
+        console.error(error.message);
     }
 });
 app.get("/prescriptions/issue", checkNotAuthenticated, (request, response) => {
@@ -174,13 +216,43 @@ app.post(
 // Pulls up Drug CRUD
 app.get("/drugs", checkNotAuthenticated, (request, response) => {
     console.log(request.session.passport);
-    response.render("updateMeds", {success: ""});
+    response.render("updateMeds", { success: "", error: "" });
+});
+
+// Search drugs in the table
+app.get("/drugs/search", checkNotAuthenticated, async (req, res) => {
+    try {
+        const { name, strength } = req.query;
+        console.log(name, strength);
+        const drugsQuery = await pool.query(
+            "SELECT * FROM Drugs AS D WHERE D.drug_name = $1 AND D.drug_strength = $2;",
+            [name, strength]
+        );
+        const foundDrugsList = drugsQuery.rows;
+        console.log(foundDrugsList);
+
+        if (foundDrugsList.length > 0) {
+            res.render("updateMeds.ejs", {
+                foundDrugsList,
+                success: "Here are the drugs that match your query",
+                error: "",
+            });
+        } else {
+            res.render("updateMeds.ejs", {
+                success: "",
+                error:
+                    "Sorry. The drug you are trying to search for does not exist in our database",
+            });
+        }
+    } catch (error) {
+        console.log(error.message);
+    }
 });
 
 // Add drug to drug table
-app.post("/drugs/addMed", async (req, res) => {
+app.post("/drugs/addMed", checkNotAuthenticated, async (req, res) => {
     try {
-        const {name, strength, cost, quantity} = req.body;
+        const { name, strength, cost, quantity } = req.body;
         console.log(req.body);
         const newMed = await pool.query(
             "INSERT INTO Drugs (drug_name, drug_strength, drug_cost, drug_quantity) VALUES ($1, $2, $3, $4) RETURNING *;",
@@ -191,66 +263,72 @@ app.post("/drugs/addMed", async (req, res) => {
                 }
             }
         );
-        res.render('updateMeds', {success: "Drug was added to the database."});
+        res.render("updateMeds", {
+            success: "Drug was added to the database.",
+            error: "",
+        });
         // res.json(newMed);
     } catch (error) {
         console.log(error.message);
     }
 });
 
-
-app.post("/drugs/delete", async (req, res) => {
+//delete the drugs from the table
+app.post("/drugs/delete", checkNotAuthenticated, async (req, res) => {
     try {
-        const {name, strength} = req.body;
+        const { name, strength } = req.body;
         console.log(req.body);
         const deleteMed = await pool.query(
-            "DELETE FROM DRUGS WHERE drug_name = $1 AND drug_strength = $2", [name, strength],
+            "DELETE FROM DRUGS WHERE drug_name = $1 AND drug_strength = $2",
+            [name, strength],
             (err, result) => {
                 if (err) {
                     console.log(err.message);
                 }
             }
         );
-        res.render('updateMeds', {success: "Drug was deleted from the database."});
-        // res.json(deleteMed);
+        res.render("updateMeds", {
+            success: "Drug was deleted from the database.",
+            error: "",
+        });
     } catch (error) {
         console.log(error.message);
     }
 });
 
-app.post("/drugs/update", async (req, res) => {
+//update the drug in the table
+app.post("/drugs/update", checkNotAuthenticated, async (req, res) => {
     try {
-        const {name, strength, quantity} = req.body;
+        let { name, strength, quantity } = req.body;
         console.log(req.body);
         const deleteMed = await pool.query(
-            "UPDATE DRUGS SET drug_quantity = $1 WHERE drug_name = $2 AND drug_strength = $3", [quantity, name, strength],
+            "UPDATE DRUGS SET drug_quantity = $1 WHERE drug_name = $2 AND drug_strength = $3",
+            [quantity, name, strength],
             (err, result) => {
                 if (err) {
                     console.log(err.message);
                 }
+                console.log(result);
+
+                //if drugs were found to update, return the success in updating, else return the failed action
+                if (result.rowCount > 0) {
+                    res.render("updateMeds", {
+                        success: "Drug quantity was changed in the database.",
+                        error: "",
+                    });
+                } else {
+                    res.render("updateMeds", {
+                        success: "",
+                        error:
+                            "Drug record to update was not found in the database!",
+                    });
+                }
             }
         );
-        res.render('updateMeds', {success: "Drug quantity was changed in the database."});
-        // res.json(deleteMed);
     } catch (error) {
         console.log(error.message);
     }
 });
-
-
-
-// app.post("/drugs/search/?:name&strength", async (req, res) => {
-//         try {
-        
-//             const {name, strength} = req.params;
-//             console.log(name, strength);
-//             const drugs = await pool.query("SELECT * FROM Drugs AS D WHERE D.name = $1 AND D.strength = $2;", [name, strength]);
-//             res.json(drugs.rows);
-//         } catch (error) {
-//             console.log(error.message);
-//         }
-//     });
-
 
 //CREATE a new todo - create a new doctor from the form request.
 // app.post("/todos", async (request, response) => {
@@ -326,7 +404,6 @@ app.post("/drugs/update", async (req, res) => {
 //         console.error(error.message);
 //     }
 // });
-
 
 // Helper functions for authentication
 function checkAuthenticated(request, response, next) {
