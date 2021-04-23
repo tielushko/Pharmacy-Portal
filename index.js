@@ -145,19 +145,19 @@ app.post(
 //pulls up the form to create a prescription.
 app.get("/prescriptions", checkNotAuthenticated, async (request, response) => {
     try {
-        const doctorID = request.session.passport.user;
-        console.log(doctorID);
+        const docID = request.session.passport.user;
+        console.log(docID);
         //ISSUE: DOES NOT RETURN DRUG NAME AND NAME OF PATIENT
-        const results = await pool.query(
-            "SELECT * FROM prescribed_by as PB, patient as P, drugs as D WHERE PB.p_id=P.id AND PB.med_id=D.drug_id AND PB.id=$1",
-            [doctorID]
-        );
+        // const results = await pool.query(
+        //     "SELECT * FROM prescribed_by as PB, patient as P, drugs as D WHERE PB.p_id=P.id AND PB.med_id=D.drug_id AND PB.id=$1",
+        //     [doctorID]
+        // );
 
-        const prescriptionList = results.rows;
-        console.log(prescriptionList);
+        // const prescriptionList = results.rows;
+        // console.log(prescriptionList);
 
         response.render("prescriptions", {
-            prescriptionList,
+            docID,
             error: "",
             success: "",
         });
@@ -184,12 +184,14 @@ app.get("/prescriptions/search", checkNotAuthenticated, async (req, res) => {
 
                     if (foundPrescriptions.length > 0) {
                         res.render("prescriptions.ejs", {
+                            docID,
                             foundPrescriptions,
                             success: `Here is a list of your prescriptions for patient ${patientName}!`,
                             error: "",
                         });
                     } else {
                         res.render("prescriptions.ejs", {
+                            docID,
                             foundPrescriptions,
                             success: "",
                             error: `Sorry, you don't have any prescriptions for ${patientName}!`,
@@ -202,21 +204,172 @@ app.get("/prescriptions/search", checkNotAuthenticated, async (req, res) => {
         console.error(error.message);
     }
 });
-app.get("/prescriptions/issue", checkNotAuthenticated, (request, response) => {
-    console.log(request.session.passport);
-    response.render("issuePrescription");
-});
 
+//delete a particular prescription.
 app.post(
-    "/prescriptions/issue",
+    "/prescriptions/delete/:docID/:patientID/:medicineID",
     checkNotAuthenticated,
-    (request, response) => {}
+    async (req, res) => {
+        const { docID, patientID, medicineID } = req.params;
+        console.log(docID, patientID, medicineID);
+
+        const deletePrescription = await pool.query(
+            "DELETE FROM prescribed_by WHERE id=$1 AND p_id=$2 AND med_id=$3",
+            [docID, patientID, medicineID],
+            (err, result) => {
+                if (err) {
+                    console.log(err.message);
+                } else {
+                    if (result.rowCount > 0) {
+                        res.render("prescriptions", {
+                            docID,
+                            success:
+                                "The prescription was successfully deleted",
+                            error: "",
+                        });
+                    } else {
+                        res.render("prescriptions", {
+                            docID,
+                            success: "",
+                            error:
+                                "There was an  error deleting your prescription",
+                        });
+                    }
+                }
+            }
+        );
+    }
 );
 
+//TODO - delete this route as it is not needed anymore
+app.get("/prescriptions/issue", checkNotAuthenticated, (req, res) => {
+    console.log(req.session.passport);
+    res.render("issuePrescription");
+});
+
+// add the medicine to the stock
+app.post("/prescriptions/issue", checkNotAuthenticated, async (req, res) => {
+    try {
+        //get the required fields from the form body
+        const {
+            patientName,
+            patientEmail,
+            patientPhoneNumber,
+            medicineLabel,
+            medicineQuantity,
+            medicineStrength,
+            medicineDosage,
+        } = req.body;
+        const docID = req.session.passport.user;
+        let patientID;
+        let medicineID;
+
+        console.log(req.body, docID);
+
+        // insert a patient into the database if already not exists.
+        const addPatientIfNotExists = await pool.query(
+            "SELECT * FROM patient WHERE name=$1 AND email=$2 AND phone_number=$3",
+            [patientName, patientEmail, patientPhoneNumber],
+            async (err, result) => {
+                try {
+                    if (err) {
+                        console.error(err.message);
+                    } else {
+                        console.log(result);
+                        //patient was not found in the DB, we need to add his/her credentials
+                        if (result.rowCount == 0) {
+                            const addNewPatientToDB = await pool.query(
+                                "INSERT INTO patient (name, email, phone_number) VALUES ($1, $2, $3) RETURNING *;",
+                                [patientName, patientEmail, patientPhoneNumber],
+                                (err, result) => {
+                                    if (err) {
+                                        console.error(err.message);
+                                    } else {
+                                        console.log(result);
+                                        patientID = result.rows[0].id;
+                                    }
+                                }
+                            );
+                        } else {
+                            // just set the patientID variable to the result id
+                            patientID = result.rows[0].id;
+                            console.log(patientID);
+                        }
+                    }
+                } catch (error) {
+                    console.error(error.message);
+                }
+            }
+        );
+        // check if the medicine inserted exists in the database, if exists, then we can finalize the prescription and add it to the prescribed_by table
+        const searchMedicineInStock = await pool.query(
+            "SELECT * FROM drugs WHERE drug_name=$1 AND drug_strength=$2",
+            [medicineLabel, medicineStrength],
+            async (err, result) => {
+                try {
+                    if (err) {
+                        console.error(err.message);
+                    } else {
+                        console.log(result);
+                        //medicine was found, we can insert the prescription into the database and render success
+                        if (result.rowCount > 0) {
+                            medicineID = result.rows[0].drug_id;
+                            //get the prescription date and prepare for the psql format
+                            let currentDate = new Date();
+                            const psqlDate =
+                                currentDate.getFullYear() +
+                                "-" +
+                                currentDate.getMonth() +
+                                "-" +
+                                currentDate.getDay();
+                            const addPrescriptionToDB = await pool.query(
+                                "INSERT INTO prescribed_by (med_id, id, p_id, quantity, dosage, prescription_date) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
+                                [
+                                    medicineID,
+                                    docID,
+                                    patientID,
+                                    medicineQuantity,
+                                    medicineDosage,
+                                    psqlDate,
+                                ],
+                                (err, result) => {
+                                    if (err) {
+                                        console.error(err.message);
+                                    } else {
+                                        res.render("prescriptions", {
+                                            docID,
+                                            success:
+                                                "Your prescription was added to the database",
+                                            error: "",
+                                        });
+                                    }
+                                }
+                            );
+
+                            // medicine is not found, we cannot assign the prescription.
+                        } else {
+                            res.render("prescriptions", {
+                                docID,
+                                success: "",
+                                error:
+                                    "The medicine you are trying to prescribe is not currently in Pharmacy Stock!",
+                            });
+                        }
+                    }
+                } catch (error) {
+                    console.error(error.message);
+                }
+            }
+        );
+    } catch (error) {
+        console.error(error.message);
+    }
+});
+
 // Pulls up Drug CRUD
-app.get("/drugs", checkNotAuthenticated, (request, response) => {
-    console.log(request.session.passport);
-    response.render("updateMeds", { success: "", error: "" });
+app.get("/drugs", checkNotAuthenticated, (req, res) => {
+    console.log(req.session.passport);
+    res.render("updateMeds", { success: "", error: "" });
 });
 
 // Search drugs in the table
