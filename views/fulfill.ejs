@@ -1,0 +1,46 @@
+<%- include('partials/head')%>
+
+<div class="card text-center mx-5 my-5 shadow">
+    <div class="card-header">
+        <h1>FulFill Prescription</h1>
+    </div>
+    <div class="card-body">
+        <% if(success != "") {%>
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <%=success%>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <% }%>
+        <% if(error != "") {%>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <%=error%>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <%}%>
+        <form action="/fulfill/prescription" method="POST">
+            <div class="mb-3">
+                <h2>Fill in Patient's Information</h2>
+                <label for="patientName" class="form-label">Enter Patient's Name Here:</label>
+                <input type="text" id="patientName" name="patientName" placeholder="Patient's Name"
+                    required class="form-control" />
+                <label for="patientEmail" class="form-label">Enter Patient's Email Address Here:</label>
+                <input type="email" id="patientEmail" name="patientEmail" placeholder="Patient's Email"
+                    required class="form-control" />
+                <h2>Fill in Medicine's Information</h2>
+                <label for="medicineLabel" class="form-label">Enter Medicine Label to Prescribe
+                    Here:</label>
+                <input type="text" id="medicineLabel" name="medicineLabel" placeholder="Medicine Label"
+                    required class="form-control" />
+                <label for="medicineStrength" class="form-label">Enter Medicine Strength:</label>
+                <input type="text" id="medicineStrength" name="medicineStrength"
+                    placeholder="Medicine Strength" required class="form-control" />
+                <!-- <label for="medicineQuantity" class="form-label">Enter Medicine Quantity:</label>
+                <input type="number" id="medicineQuantity" name="medicineQuantity"
+                    placeholder="Medicine Quantity" required class="form-control" /> -->
+            </div>
+            <button>Fill Prescription</button>
+        </form>
+    </div>
+</div>
+
+<%- include('partials/footer')%>
