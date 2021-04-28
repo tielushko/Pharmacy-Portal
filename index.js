@@ -145,8 +145,8 @@ app.post(
 //pulls up the form to create a prescription.
 app.get("/prescriptions", checkNotAuthenticated, async (request, response) => {
     try {
-        const userID = request.session.passport.user;
-        console.log(userID);
+        // const userID = request.session.passport.user;
+        // console.log(userID);
         //ISSUE: DOES NOT RETURN DRUG NAME AND NAME OF PATIENT
         // const results = await pool.query(
         //     "SELECT * FROM prescribed_by as PB, patient as P, drugs as D WHERE PB.p_id=P.id AND PB.med_id=D.drug_id AND PB.id=$1",
@@ -157,7 +157,7 @@ app.get("/prescriptions", checkNotAuthenticated, async (request, response) => {
         // console.log(prescriptionList);
 
         response.render("prescriptions", {
-            id: userID,
+            // id: userID,
             user: request.user,
             error: "",
             success: "",
@@ -360,9 +360,9 @@ app.post("/prescriptions/issue", checkNotAuthenticated, async (request, response
                             const psqlDate =
                                 currentDate.getFullYear() +
                                 "-" +
-                                currentDate.getMonth() +
+                                String(currentDate.getMonth() + 1) +
                                 "-" +
-                                currentDate.getDay();
+                                String(currentDate.getDate());
                             const addPrescriptionToDB = await pool.query(
                                 "INSERT INTO prescribed_by (med_id, id, p_id, quantity, dosage, prescription_date) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
                                 [
@@ -533,74 +533,69 @@ app.get('/fulfill', checkNotAuthenticated, async (request, response) => {
 
 
 // add the medicine to the stock
-app.post("/fulfill/prescription", checkNotAuthenticated, async (request, response) => {
+app.post("/fulfill/prescription/:userID/:p_id/:med_id", checkNotAuthenticated, async (request, response) => {
     try {
         //get the required fields from the from body
-        const {
-            patientName,
-            patientEmail,
-            medicineLabel,
-            medicineStrength,
-        } = request.body;
-        const userID = request.session.passport.user;
+        const {userID, p_id, med_id} = request.params;
 
-        // Get prescription if it exists
-        const prescription = await pool.query(
-            "SELECT drug_quantity, quantity, med_id, p_id, PB.id, dosage, prescription_date, drug_cost::money::numeric::float8 FROM prescribed_by as PB, patient as P, drugs as D WHERE PB.p_id=P.id AND PB.med_id=D.drug_id AND P.name=$1 AND P.email=$2 AND D.drug_name = $3 AND D.drug_strength = $4;",
-            [patientName, patientEmail, medicineLabel, medicineStrength]
-        );
-        console.log(prescription);
-
-        if (prescription.rowCount == 0) {
-            response.render('fulfill', { success: "", error: `No prescription found for ${patientName} and ${medicineLabel} ${medicineStrength}` })
+        prescription = await pool.query("SELECT * FROM prescribed_by AS P, drugs AS D, patient AS pt WHERE P.p_id = $1 AND P.med_id = $2 AND P.med_id = D.drug_id AND P.p_id = pt.id;",
+                        [p_id, med_id])
+        prescription = prescription.rows[0];
+        console.log('Here is the prescription to be fulfilled:\n', prescription);
+        // Get date for fulfilling prescription
+        let currentDate = new Date();
+        const psqlDate =
+            currentDate.getFullYear() +
+            "-" +
+            String(currentDate.getMonth() + 1) +
+            "-" +
+            String(currentDate.getDate());
+        try {
+            if (prescription.drug_quantity == 0){
+                response.render('prescriptions', { success: "", error: `Prescription cannot be fulfilled, ${prescription.medicineLabel} ${prescription.medicineStrength} not in stock.`, user: request.user})
+            }
+            else if (prescription.drug_quantity < prescription.quantity) {
+                // insert to fulfilled by
+                let insertFulfill = await pool.query("INSERT INTO fulfilled_by (med_id, pharmacist_id, patient_id, quantity_fulfilled, fulfilled_date) VALUES ($1, $2, $3, $4, $5) RETURNING *;",
+                    [prescription.med_id, userID, prescription.p_id, prescription.drug_quantity, psqlDate])
+                console.log("fulfilled by insert", insertFulfill)
+                // update prescription
+                let updatePrescription = await pool.query(
+                    "UPDATE prescribed_by SET quantity = $1 WHERE med_id = $2 AND id = $3 AND p_id = $4 AND dosage = $5 AND prescription_date = $6;",
+                    [prescription.quantity - prescription.drug_quantity, prescription.med_id, prescription.id, prescription.p_id, prescription.dosage, prescription.prescription_date])
+                //delete medicine from drugs
+                let updateMed = await pool.query(
+                    "UPDATE DRUGS SET drug_quantity = 0 WHERE drug_name = $1 AND drug_strength = $2;",
+                    [prescription.drug_name, prescription.drug_strength],
+                )
+                response.render('prescriptions', { 
+                    success: `Prescribed ${prescription.drug_quantity} unit(s). Total cost: $ ${(prescription.drug_quantity) * prescription.drug_cost}. Patient has ${(prescription.quantity - prescription.drug_quantity)} unit(s) remaining in prescription`, 
+                    error: "", 
+                    user: request.user 
+                })
+            }
+            else {
+                // add amount to fulfilled by
+                const insertFulfill = await pool.query("INSERT INTO fulfilled_by (med_id, pharmacist_id, patient_id, quantity_fulfilled, fulfilled_date) VALUES ($1, $2, $3, $4, $5) RETURNING *;",
+                    [prescription.med_id, userID, prescription.p_id, prescription.quantity, psqlDate])
+                //Delete prescription
+                const deletePrescription = await pool.query(
+                    "DELETE FROM prescribed_by WHERE med_id = $1 AND id = $2 AND p_id = $3;",
+                    [prescription.med_id, prescription.id, prescription.p_id])
+                // update medicine from drugs
+                const updateMed = await pool.query(
+                    "UPDATE DRUGS SET drug_quantity = $1 WHERE drug_name = $2 AND drug_strength = $3;",
+                    [prescription.drug_quantity - prescription.quantity, prescription.drug_name, prescription.drug_strength],
+                )
+                response.render('prescriptions',
+                    { success: `Prescribed ${prescription.quantity} unit(s). Total cost:$ ${prescription.quantity * prescription.drug_cost}`,
+                    error: "",
+                    user: request.user 
+                })
+            }
         }
-        else {
-            let currentDate = new Date();
-            const psqlDate =
-                currentDate.getFullYear() +
-                "-" +
-                currentDate.getMonth() +
-                "-" +
-                currentDate.getDay();
-            try {
-                if (prescription.rows[0].drug_quantity == 0){
-                    response.render('fulfill', { success: "", error: `Prescription cannot be fulfilled, ${medicineLabel} ${medicineStrength} not in stock.` })
-                }
-                else if (prescription.rows[0].drug_quantity < prescription.rows[0].quantity) {
-                    // insert to fulfilled by
-                    let insertFulfill = pool.query("INSERT INTO fulfilled_by (med_id, pharmacist_id, patient_id, quantity_fulfilled, fulfilled_date) VALUES ($1, $2, $3, $4, $5) RETURNING *;",
-                        [prescription.rows[0].med_id, userID, prescription.rows[0].p_id, prescription.rows[0].drug_quantity, psqlDate])
-                    console.log("fulfilled by insert", insertFulfill)
-                    // update prescription
-                    let updatePrescription = await pool.query(
-                        "UPDATE prescribed_by SET quantity = $1 WHERE med_id = $2 AND id = $3 AND p_id = $4 AND dosage = $5 AND prescription_date = $6;",
-                        [prescription.rows[0].quantity - prescription.rows[0].drug_quantity, prescription.rows[0].med_id, prescription.rows[0].id, prescription.rows[0].p_id, prescription.rows[0].dosage, prescription.rows[0].prescription_date])
-                    //delete medicine from drugs
-                    let updateMed = await pool.query(
-                        "UPDATE DRUGS SET drug_quantity = 0 WHERE drug_name = $1 AND drug_strength = $2;",
-                        [prescription.rows[0].drug_name, prescription.rows[0].drug_strength],
-                    )
-                    response.render('fulfill', { success: `Prescribed ${prescription.rows[0].drug_quantity} unit(s). Total cost: $ ${(prescription.rows[0].drug_quantity) * prescription.rows[0].drug_cost}. Patient has ${(prescription.rows[0].quantity - prescription.rows[0].drug_quantity)} unit(s) remaining in prescription`, error: "" })
-                }
-                else {
-                    // add amount to fulfilled by
-                    const insertFulfill = pool.query("INSERT INTO fulfilled_by (med_id, pharmacist_id, patient_id, quantity_fulfilled, fulfilled_date) VALUES ($1, $2, $3, $4, $5) RETURNING *;",
-                        [prescription.rows[0].med_id, userID, prescription.rows[0].p_id, prescription.rows[0].quantity, psqlDate])
-                    //Delete prescription
-                    const deletePrescription = await pool.query(
-                        "DELETE FROM prescribed_by WHERE med_id = $1 AND id = $2 AND p_id = $3 AND dosage = $4 AND prescription_date = $5;",
-                        [prescription.rows[0].med_id, prescription.rows[0].id, prescription.rows[0].p_id, prescription.rows[0].dosage, prescription.rows[0].prescription_date])
-                    // update medicine from drugs
-                    const updateMed = await pool.query(
-                        "UPDATE DRUGS SET drug_quantity = $1 WHERE drug_name = $2 AND drug_strength = $3;",
-                        [prescription.rows[0].drug_quantity - prescription.rows[0].quantity, prescription.rows[0].drug_name, prescription.rows[0].drug_strength],
-                    )
-                    response.render('fulfill', { success: `Prescribed ${prescription.rows[0].quantity} unit(s). Total cost:$ ${prescription.rows[0].quantity * prescription.rows[0].drug_cost}`, error: "" })
-                }
-            }
-            catch (err) {
-                console.error(err.message);
-            }
+        catch (err) {
+            console.error(err.message);
         }
     }
     catch (err) {

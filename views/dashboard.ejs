@@ -5,4 +5,3 @@
 <% if (user.usr_type == 'pharmacist') { %> <%-
 include('partials/pharmacist.ejs') %> <% } else if (user.usr_type == 'doctor')
 {%> <%- include('partials/doctor') %> <% }%>
-<a href="/users/logout">Logout</a>

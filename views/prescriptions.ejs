@@ -111,6 +111,9 @@
                         <b>Medicine Dosage: </b><%= prescription.dosage %>.
                         <b>Medicine Quantity Prescribed: </b><%= prescription.quantity%>.
                         <b>Medicine Quantity: </b><%= prescription.drug_quantity %>.
+                        <form
+                                action="/fulfill/prescription/<%=userID%>/<%=prescription.p_id%>/<%=prescription.med_id%>"
+                                method="POST"><button>Fulfill Prescription</button></form>   
                     </div>
                 <% } %>
             <% } %>
