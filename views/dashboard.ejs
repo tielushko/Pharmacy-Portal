@@ -1,7 +1,10 @@
 <%- include('partials/head') %>
 
 <h1 class="mt-5 px-3">Hello <%= user.name %>!</h1>
+<h1> <span class ="badge bg-success mt-2 p-3 ms-3"><%= text%></span></h1>
 
-<% if (user.usr_type == 'pharmacist') { %> <%-
-include('partials/pharmacist.ejs') %> <% } else if (user.usr_type == 'doctor')
-{%> <%- include('partials/doctor') %> <% }%>
+<% if (user.usr_type == 'pharmacist') { %>
+    <%-include('partials/pharmacist.ejs') %>
+<% } else if (user.usr_type == 'doctor'){%>
+    <%- include('partials/doctor') %> 
+<% }%>

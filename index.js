@@ -56,10 +56,52 @@ app.get("/users/login", checkAuthenticated, (request, response) => {
 });
 
 // Renders dashboard based on the user
-app.get("/users/dashboard", checkNotAuthenticated, (request, response) => {
+app.get("/users/dashboard", checkNotAuthenticated, async (request, response) => {
     console.log(request.user);
-    response.render("dashboard", { user: request.user });
+    user = request.user
+    if (user.usr_type == 'doctor'){
+        let count = await pool.query(
+            'SELECT DISTINCT COUNT(p_id) FROM prescribed_by WHERE id = $1', 
+            [request.session.passport.user]
+        )
+        if(count.rowCount == 0){
+            response.render("dashboard", { user, text: "You have no patients." });
+        }
+        else{
+            response.render("dashboard", { user, text: `You currently have ${count.rows[0].count} active patient(s).`});
+        }
+        
+    }
+    else{
+        var start = new Date();
+        start.setDate(start.getDate() - 7);
+        start = formatDate(start);
+        let end = new Date();
+        end = formatDate(end);
+
+        let cost = await pool.query(
+            'SELECT SUM(D.drug_cost * F.quantity_fulfilled) FROM fulfilled_by F, drugs D WHERE pharmacist_id = $1 AND D.drug_id = F.med_id AND F.fulfilled_date >= $2 and F.fulfilled_date <= $3', 
+            [request.session.passport.user, start, end]
+        )
+        console.log(cost);
+        if(cost.rowCount == 0){
+            response.render("dashboard", { user, text: "Total Sales Fulfilled (Last week) = $0" });
+        }
+        else{
+            response.render("dashboard", { user, text: `Total Sales Fulfilled (Last week) = ${cost.rows[0].sum}` });
+        }
+    }
+    
 });
+
+// HELPER FUNCTION
+function formatDate(date){
+    return date.getFullYear() +
+    "-" +
+    String(date.getMonth() + 1) +
+    "-" +
+    String(date.getDate());
+}
 
 // redirects to home page on logout
 app.get("/users/logout", (request, response) => {
@@ -540,7 +582,7 @@ app.post("/fulfill/prescription/:userID/:p_id/:med_id", checkNotAuthenticated, a
 
         // Get prescription
         prescription = await pool.query(
-            "SELECT drug_quantity, quantity, med_id, p_id, PB.id, drug_cost::money::numeric::float8 FROM prescribed_by AS P, drugs AS D, patient AS pt WHERE P.p_id = $1 AND P.med_id = $2 AND P.med_id = D.drug_id AND P.p_id = pt.id;",
+            "SELECT drug_name, drug_strength, drug_quantity, quantity, med_id, p_id, PB.id, drug_cost::money::numeric::float8 FROM prescribed_by AS PB, drugs AS D, patient AS PT WHERE PB.p_id = $1 AND PB.med_id = $2 AND PB.med_id = D.drug_id AND PB.p_id = PT.id;",
             [p_id, med_id]
         );
         prescription = prescription.rows[0];
@@ -576,7 +618,7 @@ app.post("/fulfill/prescription/:userID/:p_id/:med_id", checkNotAuthenticated, a
 
                 //delete drug to 0
                 let updateMed = await pool.query(
-                    "UPDATE DRUGS SET drug_quantity = 0 WHERE drug_name = $1 AND drug_strength = $2 RETURNING *;",
+                    "UPDATE drugs SET drug_quantity = 0 WHERE drug_name = $1 AND drug_strength = $2 RETURNING *;",
                     [prescription.drug_name, prescription.drug_strength],
                 );
                 console.log('Updated meds:\n', updateMed);
@@ -588,7 +630,7 @@ app.post("/fulfill/prescription/:userID/:p_id/:med_id", checkNotAuthenticated, a
                 });
             }
             else {
-                console.log("Enough stock available.")
+                console.log("There is enough stock available.")
 
                 // add amount to fulfilled by
                 const insertFulfill = await pool.query("INSERT INTO fulfilled_by (med_id, pharmacist_id, patient_id, quantity_fulfilled, fulfilled_date) VALUES ($1, $2, $3, $4, $5) RETURNING *;",
@@ -602,9 +644,10 @@ app.post("/fulfill/prescription/:userID/:p_id/:med_id", checkNotAuthenticated, a
                 console.log("Updated prescribed by:\n", deletePrescription);
 
                 // update medicine from drugs
+                let new_quantity = prescription.drug_quantity - prescription.quantity
                 const updateMed = await pool.query(
-                    "UPDATE DRUGS SET drug_quantity = $1 WHERE drug_name = $2 AND drug_strength = $3 RETURNING *;",
-                    [prescription.drug_quantity - prescription.quantity, prescription.drug_name, prescription.drug_strength],
+                    "UPDATE drugs SET drug_quantity = $1 WHERE drug_name = $2 AND drug_strength = $3 RETURNING *;",
+                    [new_quantity, prescription.drug_name, prescription.drug_strength],
                 )
                 console.log('Updated meds:\n', updateMed);
 
