@@ -37,6 +37,23 @@ app.use(passport.initialize());
 app.use(passport.session());
 app.use(flash());
 
+// HELPER FUNCTION
+function formatDate(date){
+    return date.getFullYear() +
+    "-" +
+    String(date.getMonth() + 1) +
+    "-" +
+    String(date.getDate());
+}
+
+function titleCase(str) {
+    return str.toLowerCase().replace(/\b(\w)/g, s => s.toUpperCase());
+}
+
+function remove_space(str){
+    return str.replace(/\s/g, '');
+}
+
 /*
  ROUTES
 */
@@ -95,19 +112,6 @@ app.get("/users/dashboard", checkNotAuthenticated, async (request, response) => 
     }
     
 });
-
-// HELPER FUNCTION
-function formatDate(date){
-    return date.getFullYear() +
-    "-" +
-    String(date.getMonth() + 1) +
-    "-" +
-    String(date.getDate());
-}
-
-function titleCase(str) {
-    return str.toLowerCase().replace(/\b(\w)/g, s => s.toUpperCase());
-  }
 
 // redirects to home page on logout
 app.get("/users/logout", (request, response) => {
@@ -205,7 +209,6 @@ app.get("/prescriptions", checkNotAuthenticated, async (request, response) => {
         // console.log(prescriptionList);
 
         response.render("prescriptions", {
-            // id: userID,
             user: request.user,
             error: "",
             success: "",

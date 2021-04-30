@@ -37,18 +37,20 @@
                         <%- include('prescriptionSearchForm')%>
                         <% if (typeof foundPrescriptions != 'undefined') { %>
                         <% for (let prescription of foundPrescriptions) {%>
-                        <div>
-                            <b>Patient Name: </b><%= prescription.name %>.
-                            <b>Patient Email: </b><%= prescription.email %>.
-                            <b>Medicine Name: </b><%= prescription.drug_name %>.
-                            <b>Medicine Quantity: </b><%= prescription.drug_quantity %>.
-                            <b>Medicine Strength: </b><%= prescription.drug_strength %>.
-                            <b>Medicine Dosage: </b><%= prescription.dosage %>.
+                        <br>  
+                        <li>
+                            <b>Patient Name: </b><%= prescription.name %>
+                            <b>Patient Email: </b><%= prescription.email %>
+                            <b>Medicine Name: </b><%= prescription.drug_name %>
+                            <b>Medicine Quantity: </b><%= prescription.drug_quantity %>
+                            <b>Medicine Strength: </b><%= prescription.drug_strength %>
+                            <b>Medicine Dosage: </b><%= prescription.dosage %>
                             <!-- TODO. Make the DELETE button work for the particular patient prescription -->
                             <form
                                 action="/prescriptions/delete/<%=userID%>/<%=prescription.p_id%>/<%=prescription.med_id%>"
-                                method="POST"><button>DELETE PRESCRIPTION</button></form>
-                        </div>
+                                method="POST"><button>Delete Prescription</button></form>
+                        </li>
+                        <br>
                         <% } %>
                         <% } %>
                     </div>
@@ -103,7 +105,8 @@
             <%- include('prescriptionSearchForm')%>
             <% if (typeof foundPrescriptions != 'undefined') { %>
                 <% for (let prescription of foundPrescriptions) {%>
-                    <div>
+                    <br>
+                    <li>
                         <b>Patient Name: </b><%= prescription.name %>.
                         <b>Patient Email: </b><%= prescription.email %>.
                         <b>Medicine Name: </b><%= prescription.drug_name %>.
@@ -114,7 +117,8 @@
                         <form
                                 action="/fulfill/prescription/<%=userID%>/<%=prescription.p_id%>/<%=prescription.med_id%>"
                                 method="POST"><button>Fulfill Prescription</button></form>   
-                    </div>
+                    </li>
+                    <br>
                 <% } %>
             <% } %>
         <%}%> 
