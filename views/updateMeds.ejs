@@ -138,6 +138,23 @@
             </div>
         </div>
     </div>
+
+    <h3>Current Inventory:</h3>
+    <ul class="list-group">
+    <% if (typeof allDrugs != 'undefined') { %> 
+        <% for (let drug of allDrugs) { %>
+        <li class="list-group-item">
+            <div class="d-flex justify-content-center">
+                <h3>
+                    Name: <b><%=drug.drug_name%></b>. 
+                    Quantity: <b><%= drug.drug_quantity%></b> 
+                    Cost: <b><%= drug.drug_cost%></b>
+                </h3>
+            </div>
+        </li>
+        <% } %> 
+    <% } %>
+</ul>
 </div>
 
 <%- include('partials/footer')%>
