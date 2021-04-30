@@ -16,24 +16,27 @@
 <body>
     <nav class="navbar navbar-light rounded shadow p-3">
         <div class="container-fluid">
-            <span class="navbar-brand mb-0 h1">DocPharm Connect</span>
+            <span class="navbar-brand mb-0 h1">
+                <img src="../img/DocPharm.png" alt="" width="30" height="24" class="d-inline-block align-text-top">
+                DocPharm Connect
+            </span>
         </div>
     </nav>
     <div class="card text-center mx-5 my-5 shadow">
         <div class="card-header">
             <h1>Login</h1>
             <% if (messages.success_msg) { %>
-                <div class="alert alert-info alert-dismissible fade show" role="alert">
-                        <%= messages.success_msg %>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
+            <div class="alert alert-info alert-dismissible fade show" role="alert">
+                <%= messages.success_msg %>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
             <% } %>
             <% if (messages.error) { %>
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                        <%= messages.error %>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-                <% } %>
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <%= messages.error %>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            <% } %>
         </div>
         <div class="card-body">
             <form action="/users/login" method="POST">
