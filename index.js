@@ -59,16 +59,18 @@ app.get("/users/login", checkAuthenticated, (request, response) => {
 app.get("/users/dashboard", checkNotAuthenticated, async (request, response) => {
     console.log(request.user);
     user = request.user
+    name = titleCase(user.name)
+    console.log(name)
     if (user.usr_type == 'doctor'){
         let count = await pool.query(
             'SELECT DISTINCT COUNT(p_id) FROM prescribed_by WHERE id = $1', 
             [request.session.passport.user]
         )
         if(count.rowCount == 0){
-            response.render("dashboard", { user, text: "You have no patients." });
+            response.render("dashboard", { user, text: "You have no patients.", name });
         }
         else{
-            response.render("dashboard", { user, text: `You currently have ${count.rows[0].count} active patient(s).`});
+            response.render("dashboard", { user, text: `You currently have ${count.rows[0].count} active patient(s).`, name});
         }
         
     }
@@ -85,10 +87,10 @@ app.get("/users/dashboard", checkNotAuthenticated, async (request, response) => 
         )
         console.log(cost);
         if(cost.rowCount == 0){
-            response.render("dashboard", { user, text: "Total Sales Fulfilled (Last week) = $0" });
+            response.render("dashboard", { user, text: "Total Sales Fulfilled (Last week) = $0", name });
         }
         else{
-            response.render("dashboard", { user, text: `Total Sales Fulfilled (Last week) = ${cost.rows[0].sum}` });
+            response.render("dashboard", { user, text: `Total Sales Fulfilled (Last week) = ${cost.rows[0].sum}`, name});
         }
     }
     
@@ -102,6 +104,10 @@ function formatDate(date){
     "-" +
     String(date.getDate());
 }
+
+function titleCase(str) {
+    return str.toLowerCase().replace(/\b(\w)/g, s => s.toUpperCase());
+  }
 
 // redirects to home page on logout
 app.get("/users/logout", (request, response) => {
