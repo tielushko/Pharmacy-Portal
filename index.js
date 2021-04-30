@@ -20,7 +20,7 @@ const app = express();
 //set the default path for templates to views, then we can work with what's inside of it.
 app.set("views", path.join(__dirname, "/views"));
 
-app.use(express.static(path.join(__dirname, "/views")))
+app.use(express.static(path.join(__dirname, "/views")));
 
 //set templates view engine to be of ejs extension
 app.set("view engine", "ejs");
@@ -218,82 +218,85 @@ app.get("/prescriptions", checkNotAuthenticated, async (request, response) => {
     }
 });
 
-app.get("/prescriptions/search", checkNotAuthenticated, async (request, response) => {
-    try {
-        const { patientName, patientEmail } = request.query;
-        const userID = request.session.passport.user;
-        const user = request.user
-        console.log(userID, patientName, patientEmail);
-        console.log(user)
+app.get(
+    "/prescriptions/search",
+    checkNotAuthenticated,
+    async (request, response) => {
+        try {
+            const { patientName, patientEmail } = request.query;
+            const userID = request.session.passport.user;
+            const user = request.user;
+            console.log(userID, patientName, patientEmail);
+            console.log(user);
 
-        if (user.usr_type == 'doctor') {
-            const patientsQuery = await pool.query(
-                "SELECT * FROM prescribed_by as PB, patient as P, drugs as D WHERE PB.p_id=P.id AND PB.med_id=D.drug_id AND PB.id=$1 AND P.name=$2 AND P.email=$3",
-                [userID, patientName, patientEmail],
-                (err, result) => {
-                    if (err) {
-                        console.error(err.message);
-                    } else {
-                        const foundPrescriptions = result.rows;
-                        console.log(foundPrescriptions);
-
-                        if (foundPrescriptions.length > 0) {
-                            response.render("prescriptions.ejs", {
-                                userID,
-                                foundPrescriptions,
-                                user: user,
-                                success: `Here is a list of your prescriptions for patient ${patientName}!`,
-                                error: "",
-                            });
+            if (user.usr_type == "doctor") {
+                const patientsQuery = await pool.query(
+                    "SELECT * FROM prescribed_by as PB, patient as P, drugs as D WHERE PB.p_id=P.id AND PB.med_id=D.drug_id AND PB.id=$1 AND P.name=$2 AND P.email=$3",
+                    [userID, patientName, patientEmail],
+                    (err, result) => {
+                        if (err) {
+                            console.error(err.message);
                         } else {
-                            response.render("prescriptions.ejs", {
-                                userID,
-                                foundPrescriptions,
-                                user: user,
-                                success: "",
-                                error: `Sorry, you don't have any prescriptions for ${patientName}!`,
-                            });
+                            const foundPrescriptions = result.rows;
+                            console.log(foundPrescriptions);
+
+                            if (foundPrescriptions.length > 0) {
+                                response.render("prescriptions.ejs", {
+                                    userID,
+                                    foundPrescriptions,
+                                    user: user,
+                                    success: `Here is a list of your prescriptions for patient ${patientName}!`,
+                                    error: "",
+                                });
+                            } else {
+                                response.render("prescriptions.ejs", {
+                                    userID,
+                                    foundPrescriptions,
+                                    user: user,
+                                    success: "",
+                                    error: `Sorry, you don't have any prescriptions for ${patientName}!`,
+                                });
+                            }
                         }
                     }
-                }
-            );
-        }
-        else if (user.usr_type == 'pharmacist') {
-            const patientsQuery = await pool.query(
-                "SELECT * FROM prescribed_by as PB, patient as P, drugs as D WHERE PB.p_id=P.id AND PB.med_id=D.drug_id AND P.name=$1 AND P.email=$2",
-                [patientName, patientEmail],
-                (err, result) => {
-                    if (err) {
-                        console.error(err.message);
-                    } else {
-                        const foundPrescriptions = result.rows;
-                        console.log(foundPrescriptions);
-
-                        if (foundPrescriptions.length > 0) {
-                            response.render("prescriptions.ejs", {
-                                userID,
-                                foundPrescriptions,
-                                user: user,
-                                success: `Here is a list of your prescriptions for patient ${patientName}!`,
-                                error: "",
-                            });
+                );
+            } else if (user.usr_type == "pharmacist") {
+                const patientsQuery = await pool.query(
+                    "SELECT * FROM prescribed_by as PB, patient as P, drugs as D WHERE PB.p_id=P.id AND PB.med_id=D.drug_id AND P.name=$1 AND P.email=$2",
+                    [patientName, patientEmail],
+                    (err, result) => {
+                        if (err) {
+                            console.error(err.message);
                         } else {
-                            response.render("prescriptions.ejs", {
-                                userID,
-                                foundPrescriptions,
-                                user: user,
-                                success: "",
-                                error: `Sorry, you don't have any prescriptions for ${patientName}!`,
-                            });
+                            const foundPrescriptions = result.rows;
+                            console.log(foundPrescriptions);
+
+                            if (foundPrescriptions.length > 0) {
+                                response.render("prescriptions.ejs", {
+                                    userID,
+                                    foundPrescriptions,
+                                    user: user,
+                                    success: `Here is a list of your prescriptions for patient ${patientName}!`,
+                                    error: "",
+                                });
+                            } else {
+                                response.render("prescriptions.ejs", {
+                                    userID,
+                                    foundPrescriptions,
+                                    user: user,
+                                    success: "",
+                                    error: `Sorry, you don't have any prescriptions for ${patientName}!`,
+                                });
+                            }
                         }
                     }
-                }
-            );
+                );
+            }
+        } catch (error) {
+            console.error(error.message);
         }
-    } catch (error) {
-        console.error(error.message);
     }
-});
+);
 
 //delete a particular prescription.
 app.post(
@@ -340,56 +343,64 @@ app.get("/prescriptions/issue", checkNotAuthenticated, (request, response) => {
 });
 
 // add the medicine to the stock
-app.post("/prescriptions/issue", checkNotAuthenticated, async (request, response) => {
-    try {
-        //get the required fields from the form body
-        const {
-            patientName,
-            patientEmail,
-            patientPhoneNumber,
-            medicineLabel,
-            medicineQuantity,
-            medicineStrength,
-            medicineDosage,
-        } = request.body;
-        const userID = request.session.passport.user;
-        let patientID;
-        let medicineID;
+app.post(
+    "/prescriptions/issue",
+    checkNotAuthenticated,
+    async (request, response) => {
+        try {
+            //get the required fields from the form body
+            const {
+                patientName,
+                patientEmail,
+                patientPhoneNumber,
+                medicineLabel,
+                medicineQuantity,
+                medicineStrength,
+                medicineDosage,
+            } = request.body;
+            const userID = request.session.passport.user;
+            let patientID;
+            let medicineID;
 
-        console.log(request.body, userID);
+            console.log(request.body, userID);
 
-        // insert a patient into the database if already not exists.
-        const addPatientIfNotExists = await pool.query(
-            "SELECT * FROM patient WHERE name=$1 AND email=$2 AND phone_number=$3",
-            [patientName, patientEmail, patientPhoneNumber],
-            async (err, result) => {
-                try {
-                    if (err) {
-                        console.error(err.message);
-                    } else {
-                        console.log(result);
-                        //patient was not found in the DB, we need to add his/her credentials
-                        if (result.rowCount == 0) {
-                            const addNewPatientToDB = await pool.query(
-                                "INSERT INTO patient (name, email, phone_number) VALUES ($1, $2, $3) RETURNING *;",
-                                [patientName, patientEmail, patientPhoneNumber],
-                                (err, result) => {
-                                    if (err) {
-                                        console.error(err.message);
-                                    } else {
-                                        console.log(result);
-                                        patientID = result.rows[0].id;
-                                    }
-                                }
-                            );
+            // insert a patient into the database if already not exists.
+            const addPatientIfNotExists = await pool.query(
+                "SELECT * FROM patient WHERE name=$1 AND email=$2 AND phone_number=$3",
+                [patientName, patientEmail, patientPhoneNumber],
+                async (err, result) => {
+                    try {
+                        if (err) {
+                            console.error(err.message);
                         } else {
-                            // just set the patientID variable to the result id
-                            patientID = result.rows[0].id;
-                            console.log(patientID);
+                            console.log(result);
+                            //patient was not found in the DB, we need to add his/her credentials
+                            if (result.rowCount == 0) {
+                                const addNewPatientToDB = await pool.query(
+                                    "INSERT INTO patient (name, email, phone_number) VALUES ($1, $2, $3) RETURNING *;",
+                                    [
+                                        patientName,
+                                        patientEmail,
+                                        patientPhoneNumber,
+                                    ],
+                                    (err, result) => {
+                                        if (err) {
+                                            console.error(err.message);
+                                        } else {
+                                            console.log(result);
+                                            patientID = result.rows[0].id;
+                                        }
+                                    }
+                                );
+                            } else {
+                                // just set the patientID variable to the result id
+                                patientID = result.rows[0].id;
+                                console.log(patientID);
+                            }
                         }
+                    } catch (error) {
+                        console.error(error.message);
                     }
-                } catch (error) {
-                    console.error(error.message);
                 }
             }
         );
@@ -436,29 +447,29 @@ app.post("/prescriptions/issue", checkNotAuthenticated, async (request, response
                                             error: "",
                                         });
                                     }
-                                }
-                            );
+                                );
 
-                            // medicine is not found, we cannot assign the prescription.
-                        } else {
-                            response.render("prescriptions", {
-                                userID,
-                                user: request.user,
-                                success: "",
-                                error:
-                                    "The medicine you are trying to prescribe is not currently in Pharmacy Stock!",
-                            });
+                                // medicine is not found, we cannot assign the prescription.
+                            } else {
+                                response.render("prescriptions", {
+                                    userID,
+                                    user: request.user,
+                                    success: "",
+                                    error:
+                                        "The medicine you are trying to prescribe is not currently in Pharmacy Stock!",
+                                });
+                            }
                         }
+                    } catch (error) {
+                        console.error(error.message);
                     }
-                } catch (error) {
-                    console.error(error.message);
                 }
-            }
-        );
-    } catch (error) {
-        console.error(error.message);
+            );
+        } catch (error) {
+            console.error(error.message);
+        }
     }
-});
+);
 
 // Pulls up Drug CRUD
 app.get("/drugs", checkNotAuthenticated, (request, response) => {
@@ -577,11 +588,13 @@ app.post("/drugs/update", checkNotAuthenticated, async (request, response) => {
     }
 });
 
-
-app.get('/fulfill', checkNotAuthenticated, async (request, response) => {
-    response.render('fulfill', { error: "", success: "" });
+app.get("/fulfill", checkNotAuthenticated, async (request, response) => {
+    try {
+        response.render("fulfill", { error: "", success: "" });
+    } catch (error) {
+        console.error(error.message);
+    }
 });
-
 
 // add the medicine to the stock
 app.post("/fulfill/prescription/:userID/:p_id/:med_id", checkNotAuthenticated, async (request, response) => {
@@ -672,85 +685,8 @@ app.post("/fulfill/prescription/:userID/:p_id/:med_id", checkNotAuthenticated, a
             console.error(err.message);
         }
     }
-    catch (err) {
-        console.error(err.message);
-    }
-});
+);
 
-//CREATE a new todo - create a new doctor from the form request.
-// app.post("/todos", async (request, response) => {
-//     try {
-//         const { id, name, phone_number, email, password } = request.body;
-//         console.log(request.body);
-//         const newDoc = await pool.query(
-//             "INSERT INTO Doctor (id, name, phone_number, email, password) VALUES ($1, $2, $3, $4, $5) RETURNING *;",
-//             [id, name, phone_number, email, password],
-//             (err, result) => {
-//                 if (err) {
-//                     console.log(err.message);
-//                 }
-//             }
-//         );
-//         response.json(newDoc);
-//     } catch (error) {
-//         console.log(error.message);
-//     }
-// });
-
-//Example of get request
-// app.get("/doctor", async (request, response) => {
-//     try {
-//         const allDocs = await pool.query("SELECT * FROM DOCTOR");
-//         response.json(allDocs.rows);
-//     } catch (error) {
-//         console.log(error.message);
-//     }
-// });
-
-// app.get("/todos/:id", async (request, response) => {
-//     try {
-//         const { id } = request.params;
-//         const todo = await pool.query(
-//             "SELECT description FROM todo WHERE todo_id=$1",
-//             [id]
-//         );
-
-//         response.json(todo.rows[0]);
-//     } catch (error) {
-//         console.error(error.message);
-//     }
-// });
-
-//UPDATE the todo by id
-
-// app.put("/todos/:id", async (request, response) => {
-//     try {
-//         const { id } = request.params; //WHERE
-//         const { description } = request.body; //WHAT TO SET
-//         const updateToDo = await pool.query(
-//             "UPDATE todo SET description = $1 WHERE todo_id = $2",
-//             [description, id]
-//         );
-//         response.json(`Todo with id ${id} was updated!`);
-//     } catch (error) {
-//         console.error(error.message);
-//     }
-// });
-
-//DELETE the todo by id
-// app.delete("/todos/:id", async (request, response) => {
-//     try {
-//         const { id } = request.params; //WHERE
-
-//         const deleteTodo = await pool.query(
-//             "DELETE FROM todo WHERE todo_id = $1",
-//             [id]
-//         );
-//         response.json(`Todo with id ${id} was deleted!`);
-//     } catch (error) {
-//         console.error(error.message);
-//     }
-// });
 
 // Helper functions for authentication
 function checkAuthenticated(request, response, next) {
