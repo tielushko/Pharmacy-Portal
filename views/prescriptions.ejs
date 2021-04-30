@@ -35,24 +35,29 @@
                     data-bs-parent="#accordionExample">
                     <div class="accordion-body">
                         <%- include('prescriptionSearchForm')%>
+                        <ul class="list-group">
                         <% if (typeof foundPrescriptions != 'undefined') { %>
-                        <% for (let prescription of foundPrescriptions) {%>
-                        <br>  
-                        <li>
-                            <b>Patient Name: </b><%= prescription.name %>
-                            <b>Patient Email: </b><%= prescription.email %>
-                            <b>Medicine Name: </b><%= prescription.drug_name %>
-                            <b>Medicine Quantity: </b><%= prescription.drug_quantity %>
-                            <b>Medicine Strength: </b><%= prescription.drug_strength %>
-                            <b>Medicine Dosage: </b><%= prescription.dosage %>
-                            <!-- TODO. Make the DELETE button work for the particular patient prescription -->
-                            <form
-                                action="/prescriptions/delete/<%=userID%>/<%=prescription.p_id%>/<%=prescription.med_id%>"
-                                method="POST"><button>Delete Prescription</button></form>
-                        </li>
-                        <br>
+                            <% for (let prescription of foundPrescriptions) {%>
+                            <br>  
+                            <li class="list-group-item">
+                                <div class="d-flex justify-content-center">
+                                    <h3>
+                                        <b>Patient Name: </b><%= prescription.name %>
+                                        <b>Medicine Name: </b><%= prescription.drug_name %>
+                                        <b>Medicine Quantity: </b><%= prescription.drug_quantity %>
+                                        <b>Medicine Strength: </b><%= prescription.drug_strength %>
+                                        <b>Medicine Dosage: </b><%= prescription.dosage %></h3>
+                                    <form
+                                        action="/prescriptions/delete/<%=userID%>/<%=prescription.p_id%>/<%=prescription.med_id%>"
+                                        method="POST">
+                                        <button class="btn btn-danger">Delete Prescription</button>
+                                    </form>
+                                </div>
+                            </li>
+                            <br>
+                            <% } %>
                         <% } %>
-                        <% } %>
+                        </ul>
                     </div>
                 </div>
             </div>
@@ -95,7 +100,7 @@
                                 <input type="text" id="medicineDosage" name="medicineDosage"
                                     placeholder="Prescription Dosage" required class="form-control" />
                             </div>
-                            <button>Create a prescription</button>
+                            <button class="btn btn-success">Create a prescription</button>
                         </form>
                     </div>
                 </div>
@@ -103,24 +108,31 @@
         </div>
         <%} else if (user.usr_type == 'pharmacist') { %>
             <%- include('prescriptionSearchForm')%>
-            <% if (typeof foundPrescriptions != 'undefined') { %>
-                <% for (let prescription of foundPrescriptions) {%>
-                    <br>
-                    <li>
-                        <b>Patient Name: </b><%= prescription.name %>.
-                        <b>Patient Email: </b><%= prescription.email %>.
-                        <b>Medicine Name: </b><%= prescription.drug_name %>.
-                        <b>Medicine Strength: </b><%= prescription.drug_strength %>.
-                        <b>Medicine Dosage: </b><%= prescription.dosage %>.
-                        <b>Medicine Quantity Prescribed: </b><%= prescription.quantity%>.
-                        <b>Medicine Quantity: </b><%= prescription.drug_quantity %>.
-                        <form
-                                action="/fulfill/prescription/<%=userID%>/<%=prescription.p_id%>/<%=prescription.med_id%>"
-                                method="POST"><button>Fulfill Prescription</button></form>   
-                    </li>
-                    <br>
-                <% } %>
-            <% } %>
+
+             <ul class="list-group">
+                <% if (typeof foundPrescriptions != 'undefined') { %>
+                    <% for (let prescription of foundPrescriptions) {%>
+                    <br>  
+                        <li class="list-group-item">
+                            <div class="d-flex justify-content-center">
+                                <h3>
+                                    <b>Patient Name: </b><%= prescription.name %>.
+                                    <b>Patient Email: </b><%= prescription.email %>.
+                                    <b>Medicine Name: </b><%= prescription.drug_name %>.
+                                    <b>Medicine Strength: </b><%= prescription.drug_strength %>.
+                                    <b>Medicine Dosage: </b><%= prescription.dosage %>.
+                                    <b>Medicine Quantity Prescribed: </b><%= prescription.quantity%>.
+                                    <b>Medicine Quantity in Stock: </b><%= prescription.drug_quantity %>.
+                                <form
+                                    action="/fulfill/prescription/<%=userID%>/<%=prescription.p_id%>/<%=prescription.med_id%>"
+                                    method="POST"><button class="btn btn-success">Fulfill Prescription</button></form>
+                                </form>
+                            </div>
+                        </li>
+                        <br>
+                        <% } %>
+                    <% } %>
+                </ul>
         <%}%> 
     </div>
 </div>
