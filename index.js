@@ -102,7 +102,7 @@ app.get(
                 });
             }
         } else {
-            var start = new Date();
+            let start = new Date();
             start.setDate(start.getDate() - 7);
             start = formatDate(start);
             let end = new Date();
