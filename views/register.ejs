@@ -35,7 +35,7 @@
                             <% if (typeof errors != 'undefined') { %>
                                 <% for (let error of errors) {%>
                                     <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                                            <%= messages.success_msg %>
+                                            <%= error.message %>
                                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                                     </div>    
                                 <% } %>

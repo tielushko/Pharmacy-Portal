@@ -10,6 +10,7 @@ const pool = require("./db");
 const passport = require("passport");
 const initializePassport = require("./passportConfig");
 const e = require("express");
+const { render } = require("ejs");
 initializePassport(passport);
 //local port for the server
 const port = process.env.PORT || 8000;
@@ -109,7 +110,7 @@ app.get(
                 [request.session.passport.user, start, end]
             );
             console.log(cost);
-            if (cost.rowCount == 0) {
+            if (cost.rows[0].sum == null) {
                 response.render("dashboard", {
                     user,
                     text: "Total Sales Fulfilled (Last week) = $0",
@@ -575,15 +576,14 @@ app.get("/drugs/search", checkNotAuthenticated, async (request, response) => {
             response.render("updateMeds.ejs", {
                 foundDrugsList,
                 allDrugs,
-                success: "Here are the drugs that match your query",
+                success: "Here are the drugs that match your query.",
                 error: "",
             });
         } else {
             response.render("updateMeds.ejs", {
                 allDrugs,
                 success: "",
-                error:
-                    "Sorry. The drug you are trying to search for does not exist in our database",
+                error: "Sorry. The drug does not exist in inventory.",
             });
         }
     } catch (error) {
@@ -599,19 +599,24 @@ app.post("/drugs/addMed", checkNotAuthenticated, async (request, response) => {
         const newMed = await pool.query(
             "INSERT INTO Drugs (drug_name, drug_strength, drug_cost, drug_quantity) VALUES (UPPER(REPLACE($1, ' ', '')), UPPER(REPLACE($2, ' ', '')), $3, $4) RETURNING *;",
             [name, strength, cost, quantity],
-            (err, result) => {
+            async (err, result) => {
+                const allDrugsQuery = await pool.query("SELECT * FROM drugs");
+                const allDrugs = allDrugsQuery.rows;
                 if (err) {
-                    console.error(err.message);
+                    response.render("updateMeds", {
+                        success: "",
+                        error: " Drug already exists in the inventory.",
+                        allDrugs,
+                    });
+                } else {
+                    response.render("updateMeds", {
+                        success: "Drug was added to the inventory.",
+                        error: "",
+                        allDrugs,
+                    });
                 }
             }
         );
-        const allDrugsQuery = await pool.query("SELECT * FROM drugs");
-        const allDrugs = allDrugsQuery.rows;
-        response.render("updateMeds", {
-            success: "Drug was added to the database.",
-            error: "",
-            allDrugs,
-        });
     } catch (error) {
         console.error(error.message);
     }
@@ -623,21 +628,30 @@ app.post("/drugs/delete", checkNotAuthenticated, async (request, response) => {
         const { name, strength } = request.body;
         console.log(request.body);
         const deleteMed = await pool.query(
-            "DELETE FROM DRUGS WHERE drug_name = UPPER(REPLACE($1, ' ', '')) AND drug_strength = UPPER(REPLACE($2, ' ', ''))",
+            "DELETE FROM DRUGS WHERE drug_name = UPPER(REPLACE($1, ' ', '')) AND drug_strength = UPPER(REPLACE($2, ' ', '')) RETURNING *",
             [name, strength],
-            (err, result) => {
+            async (err, result) => {
+                const allDrugsQuery = await pool.query("SELECT * FROM drugs");
+                const allDrugs = allDrugsQuery.rows;
                 if (err) {
                     console.error(err.message);
                 }
+
+                if (result.rowCount == 0) {
+                    response.render("updateMeds", {
+                        allDrugs,
+                        success: "",
+                        error: "Drug to delete was not found in the inventory.",
+                    });
+                } else {
+                    response.render("updateMeds", {
+                        allDrugs,
+                        success: "Drug was removed from the inventory.",
+                        error: "",
+                    });
+                }
             }
         );
-        const allDrugsQuery = await pool.query("SELECT * FROM drugs");
-        const allDrugs = allDrugsQuery.rows;
-        response.render("updateMeds", {
-            allDrugs,
-            success: "Drug was deleted from the database.",
-            error: "",
-        });
     } catch (error) {
         console.error(error.message);
     }
@@ -690,7 +704,7 @@ app.get("/fulfill", checkNotAuthenticated, async (request, response) => {
 
 // add the medicine to the stock
 app.post(
-    "/fulfill/prescription/:userID/:p_id/:med_id",
+    "/fulfill/  /:userID/:p_id/:med_id",
     checkNotAuthenticated,
     async (request, response) => {
         try {
