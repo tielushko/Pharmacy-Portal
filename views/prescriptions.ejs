@@ -2,11 +2,11 @@
 
 <div class="card text-center mx-5 my-5 shadow">
     <div class="card-header">
-            <% if (user.usr_type == 'doctor') { %>
-                <h1>Manage Prescriptions</h1>
-            <%} else if (user.usr_type == 'pharmacist') { %>
-                <h1>Search Prescriptions</h1>
-            <%} %>
+        <% if (user.usr_type == 'doctor') { %>
+        <h1>Manage Prescriptions</h1>
+        <%} else if (user.usr_type == 'pharmacist') { %>
+        <h1>Search Prescriptions</h1>
+        <%} %>
     </div>
     <div class="card-body">
         <% if(success != "") {%>
@@ -35,29 +35,39 @@
                     data-bs-parent="#accordionExample">
                     <div class="accordion-body">
                         <%- include('prescriptionSearchForm')%>
-                        <ul class="list-group">
                         <% if (typeof foundPrescriptions != 'undefined') { %>
+                        <table class="table table-hover table-borderless">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Patient Name</th>
+                                    <th scope="col">Medicine Name</th>
+                                    <th scope="col">Quantity Prescribed</th>
+                                    <th scope="col">Medicine Quantity</th>
+                                    <th scope="col">Medicine Strength</th>
+                                    <th scope="col">Medicine Dosage</th>
+                                </tr>
+                            </thead>
                             <% for (let prescription of foundPrescriptions) {%>
-                            <br>  
-                            <li class="list-group-item">
-                                <div class="d-flex justify-content-center">
-                                    <h3>
-                                        <b>Patient Name: </b><%= prescription.name %>
-                                        <b>Medicine Name: </b><%= prescription.drug_name %>
-                                        <b>Medicine Quantity: </b><%= prescription.drug_quantity %>
-                                        <b>Medicine Strength: </b><%= prescription.drug_strength %>
-                                        <b>Medicine Dosage: </b><%= prescription.dosage %></h3>
-                                    <form
-                                        action="/prescriptions/delete/<%=userID%>/<%=prescription.p_id%>/<%=prescription.med_id%>"
-                                        method="POST">
-                                        <button class="btn btn-danger">Delete Prescription</button>
-                                    </form>
-                                </div>
-                            </li>
-                            <br>
+                            <tbody>
+                                <tr>
+                                    <td><%= prescription.name %> </td>
+                                    <td><%= prescription.drug_name %></td>
+                                    <td><%= prescription.quantity%></td>
+                                    <td><%= prescription.drug_quantity%></td>
+                                    <td><%= prescription.drug_strength%></td>
+                                    <td><%= prescription.dosage%></td>
+                                    <td>
+                                        <form
+                                            action="/prescriptions/delete/<%=userID%>/<%=prescription.p_id%>/<%=prescription.med_id%>"
+                                            method="POST">
+                                            <button class="btn btn-danger">Delete Prescription</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            </tbody>
                             <% } %>
+                        </table>
                         <% } %>
-                        </ul>
                     </div>
                 </div>
             </div>
@@ -107,32 +117,39 @@
             </div>
         </div>
         <%} else if (user.usr_type == 'pharmacist') { %>
-            <%- include('prescriptionSearchForm')%>
+        <%- include('prescriptionSearchForm')%>
 
-             <ul class="list-group">
-                <% if (typeof foundPrescriptions != 'undefined') { %>
-                    <% for (let prescription of foundPrescriptions) {%>
-                    <br>  
-                        <li class="list-group-item">
-                            <div class="d-flex justify-content-center">
-                                <h3>
-                                    <b>Patient Name: </b><%= prescription.name %>.
-                                    <b>Patient Email: </b><%= prescription.email %>.
-                                    <b>Medicine Name: </b><%= prescription.drug_name %>.
-                                    <b>Medicine Strength: </b><%= prescription.drug_strength %>.
-                                    <b>Medicine Dosage: </b><%= prescription.dosage %>.
-                                    <b>Medicine Quantity Prescribed: </b><%= prescription.quantity%>.
-                                    <b>Medicine Quantity in Stock: </b><%= prescription.drug_quantity %>.
-                                <form
-                                    action="/fulfill/prescription/<%=userID%>/<%=prescription.p_id%>/<%=prescription.med_id%>"
-                                    method="POST"><button class="btn btn-success">Fulfill Prescription</button></form>
-                                </form>
-                            </div>
-                        </li>
-                        <br>
-                        <% } %>
-                    <% } %>
-                </ul>
+        <% if (typeof foundPrescriptions != 'undefined') { %>
+        <table class="table table-hover table-borderless">
+            <thead>
+                <tr>
+                    <th scope="col">Patient Name</th>
+                    <th scope="col">Medicine Name</th>
+                    <th scope="col">Quantity Prescribed</th>
+                    <th scope="col">Medicine Quantity</th>
+                    <th scope="col">Medicine Strength</th>
+                    <th scope="col">Medicine Dosage</th>
+                </tr>
+            </thead>
+            <% for (let prescription of foundPrescriptions) {%>
+            <tbody>
+                <tr>
+                    <td><%= prescription.name %> </td>
+                    <td><%= prescription.drug_name %></td>
+                    <td><%= prescription.quantity%></td>
+                    <td><%= prescription.drug_quantity %></td>
+                    <td><%= prescription.drug_strength %></td>
+                    <td><%= prescription.dosage %></td>
+                    <td>
+                        <form action="/fulfill/prescription/<%=userID%>/<%=prescription.p_id%>/<%=prescription.med_id%>"
+                            method="POST"><button class="btn btn-success">Fulfill Prescription</button></form>
+                        </form>
+                    </td>
+                </tr>
+            </tbody>
+            <% } %>
+        </table>
+        <% } %>
         <%}%> 
     </div>
 </div>

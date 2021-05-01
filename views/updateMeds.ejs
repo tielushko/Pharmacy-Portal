@@ -1,7 +1,7 @@
 <%- include('partials/head')%>
 <div class="card text-center mx-5 my-5 shadow">
     <div class="card-header">
-        <h1>Update Drug Stock</h1>
+        <h1>Manage Pharmacy Stock</h1>
     </div>
     <div class="card-body">
         <% if(success != "") {%>
@@ -21,7 +21,7 @@
                 <h2 class="accordion-header" id="headingOne">
                     <button class="accordion-button" type="button" data-bs-toggle="collapse"
                         data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-                        Search Drug Stock
+                        Search Drug
                     </button>
                 </h2>
                 <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne"
@@ -38,17 +38,27 @@
                             </div>
                             <button class="btn btn-primary">Search</button>
                             <ul class="list-group">
-                                <% if (typeof foundDrugsList != 'undefined') { %> 
+                                <% if (typeof foundDrugsList != 'undefined') { %>
+                                <table class="table table-hover table-borderless">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Medicine Name</th>
+                                            <th scope="col">Medicine Quantity</th>
+                                            <th scope="col">Medicine Strength</th>
+                                            <th scope="col">Medicine Cost</th>
+                                        </tr>
+                                    </thead>
                                     <% for (let drug of foundDrugsList) {%>
-                                        <li class="list-group-item">
-                                            <h3>
-                                                <b>Medicine Name: </b><%= drug.drug_name %>.
-                                                <b>Medicine Quantity: </b><%= drug.drug_quantity %>.
-                                                <b>Medicine Strength: </b><%= drug.drug_strength %>.
-                                                <b>Medicine Cost: </b><%= drug.drug_cost %>.
-                                            </h3>
-                                        </li>
-                                    <% } %> 
+                                    <tbody>
+                                        <tr>
+                                            <td><%= drug.drug_name %> </td>
+                                            <td><%= drug.drug_quantity %></td>
+                                            <td><%= drug.drug_strength%></td>
+                                            <td><%= drug.drug_cost%></td>
+                                        </tr>
+                                    </tbody>
+                                    <% } %>
+                                </table>
                                 <% } %>
                             </ul>
                         </form>
@@ -59,7 +69,7 @@
                 <h2 class="accordion-header" id="headingTwo">
                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
                         data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
-                        Add to Drug Stock
+                        Add New Drug
                     </button>
                 </h2>
                 <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo"
@@ -89,7 +99,7 @@
                 <h2 class="accordion-header" id="headingThree">
                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
                         data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
-                        Update Drug Stock
+                        Update Drug Quantity
                     </button>
                 </h2>
                 <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree"
@@ -116,7 +126,7 @@
                 <h2 class="accordion-header" id="headingFour">
                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
                         data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
-                        Remove Drug From Stock
+                        Remove Drug
                     </button>
                 </h2>
                 <div id="collapseFour" class="accordion-collapse collapse" aria-labelledby="headingFour"

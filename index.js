@@ -52,10 +52,6 @@ function titleCase(str) {
     return str.toLowerCase().replace(/\b(\w)/g, (s) => s.toUpperCase());
 }
 
-function remove_space(str) {
-    return str.replace(/\s/g, "");
-}
-
 /*
  ROUTES
 */
@@ -288,7 +284,7 @@ app.get(
 
             if (user.usr_type == "doctor") {
                 const patientsQuery = await pool.query(
-                    "SELECT * FROM prescribed_by as PB, patient as P, drugs as D WHERE PB.p_id=P.id AND PB.med_id=D.drug_id AND PB.id=$1 AND P.name=$2 AND P.email=$3",
+                    "SELECT p_id, med_id, name, INITCAP(drug_name) AS drug_name, drug_quantity, LOWER(drug_strength) AS drug_strength, LOWER(dosage) AS dosage, quantity FROM prescribed_by as PB, patient as P, drugs as D WHERE PB.p_id=P.id AND PB.med_id=D.drug_id AND PB.id=$1 AND P.name=$2 AND P.email=$3",
                     [userID, patientName, patientEmail],
                     (err, result) => {
                         if (err) {
@@ -319,7 +315,7 @@ app.get(
                 );
             } else if (user.usr_type == "pharmacist") {
                 const patientsQuery = await pool.query(
-                    "SELECT * FROM prescribed_by as PB, patient as P, drugs as D WHERE PB.p_id=P.id AND PB.med_id=D.drug_id AND P.name=$1 AND P.email=$2",
+                    "SELECT p_id, med_id, name, INITCAP(drug_name) AS drug_name, drug_quantity, LOWER(drug_strength) AS drug_strength, LOWER(dosage) AS dosage, quantity FROM prescribed_by as PB, patient as P, drugs as D WHERE PB.p_id=P.id AND PB.med_id=D.drug_id AND P.name=$1 AND P.email=$2",
                     [patientName, patientEmail],
                     (err, result) => {
                         if (err) {
@@ -462,7 +458,7 @@ app.post(
             );
             // check if the medicine inserted exists in the database, if exists, then we can finalize the prescription and add it to the prescribed_by table
             const searchMedicineInStock = await pool.query(
-                "SELECT * FROM drugs WHERE drug_name=$1 AND drug_strength=$2",
+                "SELECT * FROM drugs WHERE drug_name=UPPER(REPLACE($1, ' ', '')) AND drug_strength= UPPER(REPLACE($2, ' ', ''));",
                 [medicineLabel, medicineStrength],
                 async (err, result) => {
                     try {
@@ -482,7 +478,7 @@ app.post(
                                     "-" +
                                     String(currentDate.getDate());
                                 const addPrescriptionToDB = await pool.query(
-                                    "INSERT INTO prescribed_by (med_id, id, p_id, quantity, dosage, prescription_date) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
+                                    "INSERT INTO prescribed_by (med_id, id, p_id, quantity, dosage, prescription_date) VALUES ($1, $2, $3, $4, UPPER(REPLACE($5, ' ','')), $6) RETURNING *",
                                     [
                                         medicineID,
                                         userID,
@@ -547,7 +543,7 @@ app.get("/drugs/search", checkNotAuthenticated, async (request, response) => {
         console.log(name, strength);
 
         const drugsQuery = await pool.query(
-            "SELECT * FROM Drugs AS D WHERE D.drug_name = $1 AND D.drug_strength = $2;",
+            "SELECT INITCAP(D.drug_name) AS drug_name, LOWER(drug_strength) AS drug_strength, drug_quantity, drug_cost FROM Drugs AS D WHERE D.drug_name = UPPER(REPLACE($1, ' ', '')) AND D.drug_strength = UPPER(REPLACE($2, ' ', ''));",
             [name, strength]
         );
         const foundDrugsList = drugsQuery.rows;
@@ -582,7 +578,7 @@ app.post("/drugs/addMed", checkNotAuthenticated, async (request, response) => {
         const { name, strength, cost, quantity } = request.body;
         console.log(request.body);
         const newMed = await pool.query(
-            "INSERT INTO Drugs (drug_name, drug_strength, drug_cost, drug_quantity) VALUES ($1, $2, $3, $4) RETURNING *;",
+            "INSERT INTO Drugs (drug_name, drug_strength, drug_cost, drug_quantity) VALUES (UPPER(REPLACE($1, ' ', '')), UPPER(REPLACE($2, ' ', '')), $3, $4) RETURNING *;",
             [name, strength, cost, quantity],
             (err, result) => {
                 if (err) {
@@ -608,7 +604,7 @@ app.post("/drugs/delete", checkNotAuthenticated, async (request, response) => {
         const { name, strength } = request.body;
         console.log(request.body);
         const deleteMed = await pool.query(
-            "DELETE FROM DRUGS WHERE drug_name = $1 AND drug_strength = $2",
+            "DELETE FROM DRUGS WHERE drug_name = UPPER(REPLACE($1, ' ', '')) AND drug_strength = UPPER(REPLACE($2, ' ', ''))",
             [name, strength],
             (err, result) => {
                 if (err) {
@@ -634,7 +630,7 @@ app.post("/drugs/update", checkNotAuthenticated, async (request, response) => {
         let { name, strength, quantity } = request.body;
         console.log(request.body);
         const deleteMed = await pool.query(
-            "UPDATE DRUGS SET drug_quantity = $1 WHERE drug_name = $2 AND drug_strength = $3",
+            "UPDATE Drugs SET drug_quantity = $1 WHERE drug_name = UPPER(REPLACE($2, ' ', '')) AND drug_strength = UPPER(REPLACE($3, ' ', ''));",
             [quantity, name, strength],
             async (err, result) => {
                 if (err) {
@@ -684,7 +680,7 @@ app.post(
 
             // Get prescription
             prescription = await pool.query(
-                "SELECT drug_name, drug_strength, drug_quantity, quantity, med_id, p_id, PB.id, drug_cost::money::numeric::float8 FROM prescribed_by AS PB, drugs AS D, patient AS PT WHERE PB.p_id = $1 AND PB.med_id = $2 AND PB.med_id = D.drug_id AND PB.p_id = PT.id;",
+                "SELECT INITCAP(D.drug_name) AS drug_name, LOWER(drug_strength) AS drug_strength, drug_quantity, quantity, med_id, p_id, PB.id, drug_cost::money::numeric::float8 FROM prescribed_by AS PB, drugs AS D, patient AS PT WHERE PB.p_id = $1 AND PB.med_id = $2 AND PB.med_id = D.drug_id AND PB.p_id = PT.id;",
                 [p_id, med_id]
             );
             prescription = prescription.rows[0];
@@ -707,7 +703,7 @@ app.post(
                     console.log("Medication not in stock.");
                     response.render("prescriptions", {
                         success: "",
-                        error: `Prescription cannot be fulfilled, ${prescription.medicineLabel} ${prescription.medicineStrength} not in stock.`,
+                        error: `Prescription cannot be fulfilled, ${prescription.drug_name} ${prescription.drug_strength} not in stock.`,
                         user: request.user,
                     });
                 } else if (prescription.drug_quantity < prescription.quantity) {
@@ -741,7 +737,7 @@ app.post(
 
                     //delete drug to 0
                     let updateMed = await pool.query(
-                        "UPDATE drugs SET drug_quantity = 0 WHERE drug_name = $1 AND drug_strength = $2 RETURNING *;",
+                        "UPDATE drugs SET drug_quantity = 0 WHERE drug_name = UPPER(REPLACE($1, ' ', '')) AND drug_strength = UPPER(REPLACE($2, ' ', '')) RETURNING *;",
                         [prescription.drug_name, prescription.drug_strength]
                     );
                     console.log("Updated meds:\n", updateMed);
@@ -788,7 +784,7 @@ app.post(
                     let new_quantity =
                         prescription.drug_quantity - prescription.quantity;
                     const updateMed = await pool.query(
-                        "UPDATE drugs SET drug_quantity = $1 WHERE drug_name = $2 AND drug_strength = $3 RETURNING *;",
+                        "UPDATE drugs SET drug_quantity = $1 WHERE drug_name = UPPER(REPLACE($2, ' ', '')) AND drug_strength = UPPER(REPLACE($3, ' ', '')) RETURNING *;",
                         [
                             new_quantity,
                             prescription.drug_name,
