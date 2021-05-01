@@ -636,7 +636,7 @@ app.post("/drugs/update", checkNotAuthenticated, async (request, response) => {
         const deleteMed = await pool.query(
             "UPDATE DRUGS SET drug_quantity = $1 WHERE drug_name = $2 AND drug_strength = $3",
             [quantity, name, strength],
-            (err, result) => {
+            async (err, result) => {
                 if (err) {
                     console.log(err.message);
                 }
