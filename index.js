@@ -545,8 +545,6 @@ app.get("/drugs/search", checkNotAuthenticated, async (request, response) => {
     try {
         const { name, strength } = request.query;
         console.log(name, strength);
-        const allDrugsQuery = await pool.query("SELECT * FROM drugs");
-        const allDrugs = allDrugsQuery.rows;
 
         const drugsQuery = await pool.query(
             "SELECT * FROM Drugs AS D WHERE D.drug_name = $1 AND D.drug_strength = $2;",
@@ -554,6 +552,9 @@ app.get("/drugs/search", checkNotAuthenticated, async (request, response) => {
         );
         const foundDrugsList = drugsQuery.rows;
         console.log(foundDrugsList);
+
+        const allDrugsQuery = await pool.query("SELECT * FROM drugs");
+        const allDrugs = allDrugsQuery.rows;
 
         if (foundDrugsList.length > 0) {
             response.render("updateMeds.ejs", {
@@ -580,9 +581,6 @@ app.post("/drugs/addMed", checkNotAuthenticated, async (request, response) => {
     try {
         const { name, strength, cost, quantity } = request.body;
         console.log(request.body);
-        const allDrugsQuery = await pool.query("SELECT * FROM drugs");
-        const allDrugs = allDrugsQuery.rows;
-
         const newMed = await pool.query(
             "INSERT INTO Drugs (drug_name, drug_strength, drug_cost, drug_quantity) VALUES ($1, $2, $3, $4) RETURNING *;",
             [name, strength, cost, quantity],
@@ -592,6 +590,8 @@ app.post("/drugs/addMed", checkNotAuthenticated, async (request, response) => {
                 }
             }
         );
+        const allDrugsQuery = await pool.query("SELECT * FROM drugs");
+        const allDrugs = allDrugsQuery.rows;
         response.render("updateMeds", {
             success: "Drug was added to the database.",
             error: "",
@@ -606,9 +606,6 @@ app.post("/drugs/addMed", checkNotAuthenticated, async (request, response) => {
 app.post("/drugs/delete", checkNotAuthenticated, async (request, response) => {
     try {
         const { name, strength } = request.body;
-        const allDrugsQuery = await pool.query("SELECT * FROM drugs");
-        const allDrugs = allDrugsQuery.rows;
-
         console.log(request.body);
         const deleteMed = await pool.query(
             "DELETE FROM DRUGS WHERE drug_name = $1 AND drug_strength = $2",
@@ -619,6 +616,8 @@ app.post("/drugs/delete", checkNotAuthenticated, async (request, response) => {
                 }
             }
         );
+        const allDrugsQuery = await pool.query("SELECT * FROM drugs");
+        const allDrugs = allDrugsQuery.rows;
         response.render("updateMeds", {
             allDrugs,
             success: "Drug was deleted from the database.",
@@ -634,9 +633,6 @@ app.post("/drugs/update", checkNotAuthenticated, async (request, response) => {
     try {
         let { name, strength, quantity } = request.body;
         console.log(request.body);
-        const allDrugsQuery = await pool.query("SELECT * FROM drugs");
-        const allDrugs = allDrugsQuery.rows;
-
         const deleteMed = await pool.query(
             "UPDATE DRUGS SET drug_quantity = $1 WHERE drug_name = $2 AND drug_strength = $3",
             [quantity, name, strength],
@@ -645,7 +641,8 @@ app.post("/drugs/update", checkNotAuthenticated, async (request, response) => {
                     console.log(err.message);
                 }
                 console.log(result);
-
+                const allDrugsQuery = await pool.query("SELECT * FROM drugs");
+                const allDrugs = allDrugsQuery.rows;
                 //if drugs were found to update, return the success in updating, else return the failed action
                 if (result.rowCount > 0) {
                     response.render("updateMeds", {
