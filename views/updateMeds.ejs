@@ -150,21 +150,26 @@
     </div>
 
     <h3>Current Inventory:</h3>
-    <ul class="list-group">
-    <% if (typeof allDrugs != 'undefined') { %> 
-        <% for (let drug of allDrugs) { %>
-        <li class="list-group-item">
-            <div class="d-flex justify-content-center">
-                <h3>
-                    Name: <b><%=drug.drug_name%></b>. 
-                    Strength: <b><%= drug.drug_strength %></b>.
-                    Quantity: <b><%= drug.drug_quantity%></b>. 
-                    Cost: <b><%= drug.drug_cost%></b>.
-                </h3>
-            </div>
-        </li>
-        <% } %> 
-    <% } %>
+    <table class="table table-hover table-borderless">
+        <thead>
+            <tr>
+                <th scope="col">Medicine Name</th>
+                <th scope="col">Medicine Strength</th>
+                <th scope="col">Medicine Quantity in Stock</th>
+            </tr>
+        </thead>
+        <% if (typeof allDrugs != 'undefined') { %> 
+            <% for (let drug of allDrugs) {%>
+                <tbody>
+                    <tr>
+                        <td><%= drug.drug_name %></td>
+                        <td><%= drug.drug_strength%></td>
+                        <td><%= drug.drug_quantity%></td>
+                    </tr>
+                </tbody>
+            <% } %>
+        <% } %>
+    </table>
 </ul>
 </div>
 

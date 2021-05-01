@@ -260,9 +260,12 @@ app.get("/prescriptions", checkNotAuthenticated, async (request, response) => {
 
         // const prescriptionList = results.rows;
         // console.log(prescriptionList);
+        const allDrugsQuery = await pool.query("SELECT * FROM drugs");
+        const allDrugs = allDrugsQuery.rows;
 
         response.render("prescriptions", {
             user: request.user,
+            allDrugs,
             error: "",
             success: "",
         });
@@ -281,6 +284,8 @@ app.get(
             const user = request.user;
             console.log(userID, patientName, patientEmail);
             console.log(user);
+            const allDrugsQuery = await pool.query("SELECT * FROM drugs");
+            const allDrugs = allDrugsQuery.rows;
 
             if (user.usr_type == "doctor") {
                 const patientsQuery = await pool.query(
@@ -296,6 +301,7 @@ app.get(
                             if (foundPrescriptions.length > 0) {
                                 response.render("prescriptions.ejs", {
                                     userID,
+                                    allDrugs,
                                     foundPrescriptions,
                                     user: user,
                                     success: `Here is a list of your prescriptions for patient ${patientName}!`,
@@ -304,6 +310,7 @@ app.get(
                             } else {
                                 response.render("prescriptions.ejs", {
                                     userID,
+                                    allDrugs,
                                     foundPrescriptions,
                                     user: user,
                                     success: "",
@@ -327,6 +334,7 @@ app.get(
                             if (foundPrescriptions.length > 0) {
                                 response.render("prescriptions.ejs", {
                                     userID,
+                                    allDrugs,
                                     foundPrescriptions,
                                     user: user,
                                     success: `Here is a list of your prescriptions for patient ${patientName}!`,
@@ -335,6 +343,7 @@ app.get(
                             } else {
                                 response.render("prescriptions.ejs", {
                                     userID,
+                                    allDrugs,
                                     foundPrescriptions,
                                     user: user,
                                     success: "",
@@ -362,13 +371,16 @@ app.post(
         const deletePrescription = await pool.query(
             "DELETE FROM prescribed_by WHERE id=$1 AND p_id=$2 AND med_id=$3",
             [userID, patientID, medicineID],
-            (err, result) => {
+            async (err, result) => {
+                const allDrugsQuery = await pool.query("SELECT * FROM drugs");
+                const allDrugs = allDrugsQuery.rows;
                 if (err) {
                     console.log(err.message);
                 } else {
                     if (result.rowCount > 0) {
                         response.render("prescriptions", {
                             userID,
+                            allDrugs,
                             user: request.user,
                             success:
                                 "The prescription was successfully deleted",
@@ -377,6 +389,7 @@ app.post(
                     } else {
                         response.render("prescriptions", {
                             userID,
+                            allDrugs,
                             user: request.user,
                             success: "",
                             error:
@@ -389,11 +402,11 @@ app.post(
     }
 );
 
-//TODO - delete this route as it is not needed anymore
-app.get("/prescriptions/issue", checkNotAuthenticated, (request, response) => {
-    console.log(request.session.passport);
-    response.render("issuePrescription");
-});
+// //TODO - delete this route as it is not needed anymore
+// app.get("/prescriptions/issue", checkNotAuthenticated, (request, response) => {
+//     console.log(request.session.passport);
+//     response.render("issuePrescription");
+// });
 
 // add the medicine to the stock
 app.post(
@@ -466,6 +479,10 @@ app.post(
                             console.error(err.message);
                         } else {
                             console.log(result);
+                            const allDrugsQuery = await pool.query(
+                                "SELECT * FROM drugs"
+                            );
+                            const allDrugs = allDrugsQuery.rows;
                             //medicine was found, we can insert the prescription into the database and render success
                             if (result.rowCount > 0) {
                                 medicineID = result.rows[0].drug_id;
@@ -493,6 +510,7 @@ app.post(
                                         } else {
                                             response.render("prescriptions", {
                                                 userID,
+                                                allDrugs,
                                                 user: request.user,
                                                 success:
                                                     "Your prescription was added to the database",
@@ -506,6 +524,7 @@ app.post(
                             } else {
                                 response.render("prescriptions", {
                                     userID,
+                                    allDrugs,
                                     user: request.user,
                                     success: "",
                                     error:

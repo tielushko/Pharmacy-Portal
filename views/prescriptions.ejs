@@ -42,7 +42,7 @@
                                     <th scope="col">Patient Name</th>
                                     <th scope="col">Medicine Name</th>
                                     <th scope="col">Quantity Prescribed</th>
-                                    <th scope="col">Medicine Quantity</th>
+                                    <th scope="col">Medicine Quantity in Stock</th>
                                     <th scope="col">Medicine Strength</th>
                                     <th scope="col">Medicine Dosage</th>
                                 </tr>
@@ -116,6 +116,28 @@
                 </div>
             </div>
         </div>
+
+        <h3>Current Inventory:</h3>
+            <table class="table table-hover table-borderless">
+                <thead>
+                    <tr>
+                        <th scope="col">Medicine Name</th>
+                        <th scope="col">Medicine Strength</th>
+                        <th scope="col">Medicine Quantity in Stock</th>
+                    </tr>
+                </thead>
+                <% if (typeof allDrugs != 'undefined') { %> 
+                    <% for (let drug of allDrugs) {%>
+                        <tbody>
+                            <tr>
+                                <td><%= drug.drug_name %></td>
+                                <td><%= drug.drug_strength%></td>
+                                <td><%= drug.drug_quantity%></td>
+                            </tr>
+                        </tbody>
+                    <% } %>
+                <% } %>
+            </table>
         <%} else if (user.usr_type == 'pharmacist') { %>
         <%- include('prescriptionSearchForm')%>
 
@@ -126,7 +148,7 @@
                     <th scope="col">Patient Name</th>
                     <th scope="col">Medicine Name</th>
                     <th scope="col">Quantity Prescribed</th>
-                    <th scope="col">Medicine Quantity</th>
+                    <th scope="col">Medicine Quantity in Stock</th>
                     <th scope="col">Medicine Strength</th>
                     <th scope="col">Medicine Dosage</th>
                 </tr>
