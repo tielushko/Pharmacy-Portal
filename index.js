@@ -284,7 +284,7 @@ app.get(
 
             if (user.usr_type == "doctor") {
                 const patientsQuery = await pool.query(
-                    "SELECT name, INITCAP(drug_name) AS drug_name, drug_quantity, LOWER(drug_strength) AS drug_strength, LOWER(dosage) AS dosage, quantity FROM prescribed_by as PB, patient as P, drugs as D WHERE PB.p_id=P.id AND PB.med_id=D.drug_id AND PB.id=$1 AND P.name=$2 AND P.email=$3",
+                    "SELECT p_id, med_id, name, INITCAP(drug_name) AS drug_name, drug_quantity, LOWER(drug_strength) AS drug_strength, LOWER(dosage) AS dosage, quantity FROM prescribed_by as PB, patient as P, drugs as D WHERE PB.p_id=P.id AND PB.med_id=D.drug_id AND PB.id=$1 AND P.name=$2 AND P.email=$3",
                     [userID, patientName, patientEmail],
                     (err, result) => {
                         if (err) {
