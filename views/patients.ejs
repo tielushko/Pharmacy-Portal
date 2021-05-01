@@ -4,47 +4,42 @@
     <% if(success != "") {%>
     <div class="alert alert-success alert-dismissible fade show" role="alert">
         <%=success%>
-        <button
-            type="button"
-            class="btn-close"
-            data-bs-dismiss="alert"
-            aria-label="Close"
-        ></button>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
     <% }%> <% if(error != "") {%>
     <div class="alert alert-danger alert-dismissible fade show" role="alert">
         <%=error%>
-        <button
-            type="button"
-            class="btn-close"
-            data-bs-dismiss="alert"
-            aria-label="Close"
-        ></button>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
     <% }%>
 </div>
-<ul class="list-group">
-    <% if (typeof foundPatients != 'undefined') { %> 
-        <% for (let patient of foundPatients) { %>
-        <li class="list-group-item">
-            <div class="d-flex justify-content-center">
-                
-                <h3>
-                    Name: <b><%=patient.name%></b>. 
-                    Email: <b><%= patient.email%></b> 
-                    Phone Number: <b><%= patient.phone_number%></b>
-                </h3>
-                
+<% if (typeof foundPatients != 'undefined') { %>
+<table class="table table-hover table-borderless ms-3">
+    <thead>
+        <tr>
+            <th scope="col">Patient Name</th>
+            <th scope="col">Patient Email</th>
+            <th scope="col">Patient Phone Number</th>
+        </tr>
+    </thead>
+    <% for (let patient of foundPatients) { %>
+    <tbody>
+        <tr>
+            <td><%=patient.name%> </td>
+            <td><%= patient.email%></td>
+            <td><%= patient.phone_number%></td>
+            <td>
                 <form action="/prescriptions/search" method="GET" class="ml-5">
                     <input type="hidden" name="patientName" value="<%=patient.name%>">
-                    <input type="hidden" name="patientEmail" value="<%=patient.email%>">    
-                    <button class="btn btn-primary">View Patient's Prescriptions</button> 
+                    <input type="hidden" name="patientEmail" value="<%=patient.email%>">
+                    <button class="btn btn-primary">View Patient's Prescriptions</button>
                 </form>
-            </div>
-        </li>
-
-        <% } %> 
+            </td>
+        </tr>
+    </tbody>
     <% } %>
+</table>
+<% } %>
 </ul>
 
 <%- include('partials/footer') %>

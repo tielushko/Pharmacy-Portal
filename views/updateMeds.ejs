@@ -1,7 +1,7 @@
 <%- include('partials/head')%>
 <div class="card text-center mx-5 my-5 shadow">
     <div class="card-header">
-        <h1>Update Drug Stock</h1>
+        <h1>Manage Pharmacy Stock</h1>
     </div>
     <div class="card-body">
         <% if(success != "") {%>
@@ -38,17 +38,27 @@
                             </div>
                             <button class="btn btn-primary">Search</button>
                             <ul class="list-group">
-                                <% if (typeof foundDrugsList != 'undefined') { %> 
+                                <% if (typeof foundDrugsList != 'undefined') { %>
+                                <table class="table table-hover table-borderless">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Medicine Name</th>
+                                            <th scope="col">Medicine Quantity</th>
+                                            <th scope="col">Medicine Strength</th>
+                                            <th scope="col">Medicine Cost</th>
+                                        </tr>
+                                    </thead>
                                     <% for (let drug of foundDrugsList) {%>
-                                        <li class="list-group-item">
-                                            <h3>
-                                                <b>Medicine Name: </b><%= drug.drug_name %>.
-                                                <b>Medicine Quantity: </b><%= drug.drug_quantity %>.
-                                                <b>Medicine Strength: </b><%= drug.drug_strength %>.
-                                                <b>Medicine Cost: </b><%= drug.drug_cost %>.
-                                            </h3>
-                                        </li>
-                                    <% } %> 
+                                    <tbody>
+                                        <tr>
+                                            <td><%= drug.drug_name %> </td>
+                                            <td><%= drug.drug_quantity %></td>
+                                            <td><%= drug.drug_strength%></td>
+                                            <td><%= drug.drug_cost%></td>
+                                        </tr>
+                                    </tbody>
+                                    <% } %>
+                                </table>
                                 <% } %>
                             </ul>
                         </form>
