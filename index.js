@@ -52,10 +52,6 @@ function titleCase(str) {
     return str.toLowerCase().replace(/\b(\w)/g, (s) => s.toUpperCase());
 }
 
-function remove_space(str) {
-    return str.replace(/\s+/g, "");
-}
-
 /*
  ROUTES
 */
